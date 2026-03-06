@@ -37,4 +37,4 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
           VERIFIED_ROLE_ID: ${{ secrets.VERIFIED_ROLE_ID }}
-        run: pnpm exec ts-node src/daemons-gh/manageVerifiedRole.ts
+        run: node dist/daemons-gh/manageVerifiedRole.js

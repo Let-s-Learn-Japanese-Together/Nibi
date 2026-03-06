@@ -36,4 +36,4 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
           CHAT_CHANNEL_ID: ${{ secrets.CHAT_CHANNEL_ID }}
-        run: pnpm exec ts-node src/daemons-gh/verifyGraduations.ts
+        run: node dist/daemons-gh/verifyGraduations.js
