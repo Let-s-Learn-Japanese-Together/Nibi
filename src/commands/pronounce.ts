@@ -1,9 +1,12 @@
-import { ChatInputCommandInteraction, SlashCommandBuilder } from 'discord.js';
+import { SlashCommandBuilder } from 'discord.js';
 import googleTTS from 'google-tts-api';
+import { Bindings } from 'hono/types';
 import Kuroshiro from 'kuroshiro';
 import KuromojiAnalyzer from 'kuroshiro-analyzer-kuromoji';
 import { config } from '../config';
 import { Command } from '../types/command';
+import { InteractionResponse } from '../types/InteractionResponse';
+import { Interaction } from './../types/Interaction';
 
 // Define types for API responses
 interface VoiceVoxResponse {
@@ -340,11 +343,14 @@ const pronounce_cmd: Command = {
         .setRequired(true)
     ),
 
-  async execute(interaction: ChatInputCommandInteraction) {
+  async execute(interaction: Interaction, env: Bindings): Promise<InteractionResponse> {
     // Différer la réponse immédiatement pour éviter l'expiration
-    await interaction.deferReply();
+    // await interaction.deferReply();
 
-    const text = interaction.options.getString('text', true);
+    // const text = interaction.options.getString('text', true);
+    // const text = (interaction.data?.options?.[0]?.value as string) || '';
+    const textOption = interaction.data?.options?.find(opt => opt.name === 'text');
+    const text = (textOption?.value as string) || '';
     console.log(`Processing pronunciation request for: "${text}"`);
 
     try {
@@ -372,7 +378,7 @@ const pronounce_cmd: Command = {
         console.log(`Audio format detected: ${isMP3 ? 'MP3' : 'OGG'}`);
 
         // Upload le fichier sur Discord
-        const uploadFilename = await uploadToDiscord(audioBuffer, interaction.channelId, isMP3);
+        const uploadFilename = await uploadToDiscord(audioBuffer, interaction.channel.id, isMP3);
 
         // Estimer la durée (approximative)
         const durationSecs = Math.max(1, Math.floor(audioBuffer.length / 16000));
@@ -381,24 +387,28 @@ const pronounce_cmd: Command = {
         const waveformB64 = generateWaveform(durationSecs);
 
         // Répondre avec le message d'information
-        await interaction.editReply(`${interaction.user.username}, here is the pronunciation for "${text}"`);
-
+        // await interaction.editReply(`${interaction.user.username}, here is the pronunciation for "${text}"`);
         // Envoyer le message vocal dans le canal
         await sendVoiceMessage(
-          interaction.channelId,
+          interaction.channel.id,
           uploadFilename,
           durationSecs,
           waveformB64,
           isMP3
         );
+        return { type: 4, data: { content: `${interaction.member.user.username}, here is the pronunciation for "${text}"` } };
+
+
 
       } else {
-        await interaction.editReply('❌ Impossible de générer l\'audio TTS avec VOICEVOX et Google TTS.');
+        // await interaction.editReply('❌ Impossible de générer l\'audio TTS avec VOICEVOX et Google TTS.');
+        return { type: 4, data: { content: '❌ Impossible de générer l\'audio TTS avec VOICEVOX et Google TTS.', flags: 64 } };
       }
 
     } catch (error) {
       console.error('Command execution error:', error);
-      await interaction.editReply('❌ Une erreur s\'est produite lors du traitement.');
+      // await interaction.editReply('❌ Une erreur s\'est produite lors du traitement.');
+      return { type: 4, data: { content: '❌ Une erreur s\'est produite lors du traitement.', flags: 64 } };
     }
   },
 };

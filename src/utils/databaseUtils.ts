@@ -1,51 +1,52 @@
 ﻿import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-// Determine whether we have a Supabase client available; this will be the
-// case in Cloudflare Worker when wrapped by wrangler with secrets or vars.
-const SUPABASE_URL = process.env.SUPABASE_URL;
-const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
-let supabase: SupabaseClient | undefined;
-if (SUPABASE_URL && SUPABASE_ANON_KEY) {
-  supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+export interface SupabaseConfig {
+  SUPABASE_URL: string;
+  SUPABASE_ANON_KEY: string;
 }
 
-// Helper functions for Supabase KV table named "kv" with columns {key, value}
-async function supabaseRead(key: string): Promise<any> {
-  if (!supabase) throw new Error('Supabase client not initialized');
-  const { data, error } = await supabase
-    .from('kv')
-    .select('value')
-    .eq('key', key)
-    .single();
-  if (error) {
-    // if no row exists, just return null
-    if (error.code === 'PGRST116' || error.code === 'PGRST117') {
-      return null;
+export class DatabaseUtils {
+  private supabase: SupabaseClient | undefined;
+
+  constructor(config: SupabaseConfig) {
+    console.log('Supabase config', {
+      SUPABASE_URL: config.SUPABASE_URL ? '[present]' : '[missing]',
+      SUPABASE_ANON_KEY: config.SUPABASE_ANON_KEY ? '[present]' : '[missing]',
+    });
+
+    if (config.SUPABASE_URL && config.SUPABASE_ANON_KEY) {
+      this.supabase = createClient(config.SUPABASE_URL, config.SUPABASE_ANON_KEY);
     }
-    throw error;
   }
-  return data?.value ?? null;
-}
 
-async function supabaseWrite(key: string, value: any): Promise<void> {
-  if (!supabase) throw new Error('Supabase client not initialized');
-  const { error } = await supabase
-    .from('kv')
-    .upsert({ key, value });
-  if (error) throw error;
-}
+  private async supabaseRead(key: string): Promise<any> {
+    if (!this.supabase) throw new Error('Supabase client not initialized');
+    const { data, error } = await this.supabase
+      .from('kv')
+      .select('value')
+      .eq('key', key)
+      .single();
+    if (error) {
+      if (error.code === 'PGRST116' || error.code === 'PGRST117') {
+        return null;
+      }
+      throw error;
+    }
+    return data?.value ?? null;
+  }
 
-/**
- * Read JSON from Supabase (using key).
- */
-export async function readJson<T = any>(key: string): Promise<T> {
-  const result = await supabaseRead(key);
-  return result as T;
-}
+  private async supabaseWrite(key: string, value: any): Promise<void> {
+    if (!this.supabase) throw new Error('Supabase client not initialized');
+    const { error } = await this.supabase.from('kv').upsert({ key, value });
+    if (error) throw error;
+  }
 
-/**
- * Write JSON to Supabase (using key).
- */
-export async function writeJson(key: string, data: any): Promise<void> {
-  await supabaseWrite(key, data);
+  async readJson<T = any>(key: string): Promise<T> {
+    const result = await this.supabaseRead(key);
+    return result as T;
+  }
+
+  async writeJson(key: string, data: any): Promise<void> {
+    await this.supabaseWrite(key, data);
+  }
 }

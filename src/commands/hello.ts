@@ -1,4 +1,4 @@
-﻿import { SlashCommandBuilder, ChatInputCommandInteraction } from 'discord.js';
+﻿import { SlashCommandBuilder } from 'discord.js';
 import { Command } from '../types/command';
 
 const hello: Command = {
@@ -26,9 +26,16 @@ const hello: Command = {
         )
     ),
 
-  async execute(interaction: ChatInputCommandInteraction) {
-    const targetUser = interaction.options.getUser('user') || interaction.user;
-    const style = interaction.options.getString('style') || 'random';
+  async execute(interaction, env) {
+    // const targetUser = interaction.options.getUser('user') || interaction.user;
+    // const style = interaction.options.getString('style') || 'random';
+
+    const targetUser = interaction.member.user.global_name || interaction.member.user.username;
+    if (!interaction.data.options) {
+      return { type: 4, data: { content: `Konnichiwa, ${targetUser}-san! ☀️` } };
+    }
+    const styleOption = interaction.data.options.find((o: any) => o.name === 'style');
+    const style = interaction.data.options.find((o: any) => o.name === 'style')?.value || 'random';
 
     const greetings = {
       morning: `Ohayo gozaimasu, ${targetUser}-san! 🌅`,
@@ -57,7 +64,8 @@ const hello: Command = {
       greeting = greetings[style as keyof typeof greetings] || greetings.afternoon;
     }
 
-    await interaction.reply(greeting);
+    // await interaction.reply(greeting);
+    return { type: 4, data: { content: greeting } };
   },
 };
 

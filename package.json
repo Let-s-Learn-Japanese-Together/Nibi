@@ -15,7 +15,10 @@
     "dotenv": "^17.3.1",
     "ejs": "^5.0.1",
     "google-translate-api-x": "^10.7.2",
+    "google-tts-api": "^2.0.2",
     "hono": "^3.1.0",
+    "kuroshiro": "^1.2.0",
+    "kuroshiro-analyzer-kuromoji": "^1.1.0",
     "nodemailer": "^8.0.1"
   },
   "devDependencies": {
@@ -24,6 +27,6 @@
     "discord.js": "^14.12.1",
     "ts-node": "^10.0.0",
     "typescript": "^5.0.0",
-    "wrangler": "^3.0.0"
+    "wrangler": "^4.71.0"
   }
 }

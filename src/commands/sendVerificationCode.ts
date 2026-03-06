@@ -1,9 +1,9 @@
-import { ChatInputCommandInteraction, ModalBuilder, SlashCommandBuilder } from 'discord.js';
+import { ModalBuilder, SlashCommandBuilder } from 'discord.js';
 import { config } from '../config';
 import { Command } from '../types/command';
-import { LLJTUser } from '../types/user';
-import { readJson, writeJson } from '../utils/databaseUtils';
+import { InteractionResponse } from '../types/InteractionResponse';
 import { sendTemplateEmail } from '../utils/sendEmail';
+import { DatabaseUtils } from './../utils/databaseUtils';
 
 const ping: Command = {
     data: new SlashCommandBuilder()
@@ -16,13 +16,21 @@ const ping: Command = {
                 .setRequired(true)
         ),
 
-    async execute(interaction: ChatInputCommandInteraction) {
-        const email = interaction.options.getString('email', true);
+    async execute(interaction, env) {
+        const DatabaseUtilsInstance = new DatabaseUtils({
+            SUPABASE_URL: env["SUPABASE_URL"] as string,
+            SUPABASE_ANON_KEY: env["SUPABASE_ANON_KEY"] as string
+        });
+        // const email = interaction.options.getString('email', true);
+        if(!interaction.data.options) {
+            return { type: 4, data: { content: 'Email option is required.' } } as InteractionResponse;
+        }
+        const emailOption = interaction.data.options.find((o: any) => o.name === 'email');
+        const email = emailOption?.value as string;
         // validate email format
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
-            await interaction.reply({ content: 'Please provide a valid email address.', ephemeral: true });
-            return;
+            return { type: 4, data: { content: 'Please provide a valid email address.', ephemeral: true } } as InteractionResponse;
         }
         // Generate a deterministic 6-digit code based on the email
         function seededCode(email: string): number {
@@ -40,7 +48,7 @@ const ping: Command = {
             'Your Verification Code',
             'verificationCode',
             {
-                username: interaction.user.displayName || interaction.user.username,
+                username: interaction.member.user.global_name || interaction.member.user.username,
                 verificationCode: verificationCode.toString()
             }
         ).then(() => {
@@ -63,37 +71,40 @@ const ping: Command = {
                 .addComponents(actionRow);
 
             // Show the modal to the user
-            interaction.showModal(modal);
+            // interaction.showModal(modal);
+            
 
-            interaction.client.on('interactionCreate', async (modalInteraction) => {
-                if (!modalInteraction.isModalSubmit()) return;
-                if (modalInteraction.customId === `verify_code_${email}`) {
-                    const userCode = modalInteraction.fields.getTextInputValue('verification_code');
-                    if (userCode === verificationCode.toString()) {
-                        const users: LLJTUser[] = await readJson<LLJTUser[]>('./databases/users.json');
-                        const userId = interaction.user.id;
-                        let user = users.find(u => u.id === userId);
-                        if (!user) {
-                            const userToPush = {
-                                id: userId,
-                                email
-                            };
-                            users.push(userToPush as LLJTUser);
-                            user = userToPush as LLJTUser;
-                        }
-                        user.email = email;
-                        writeJson('./databases/users.json', users);
-                        await modalInteraction.reply({ content: '✅ Verification successful! This email is now linked to your account.', ephemeral: true });
-                    } else {
-                        await modalInteraction.reply({ content: '❌ Incorrect code. Please try again.', ephemeral: true });
-                    }
-                }
-            })
+            // interaction.client.on('interactionCreate', async (modalInteraction) => {
+            //     if (!modalInteraction.isModalSubmit()) return;
+            //     if (modalInteraction.customId === `verify_code_${email}`) {
+            //         const userCode = modalInteraction.fields.getTextInputValue('verification_code');
+            //         if (userCode === verificationCode.toString()) {
+            //             const users: LLJTUser[] = await DatabaseUtilsInstance.readJson<LLJTUser[]>('./databases/users.json');
+            //             const userId = interaction.user.id;
+            //             let user = users.find(u => u.id === userId);
+            //             if (!user) {
+            //                 const userToPush = {
+            //                     id: userId,
+            //                     email
+            //                 };
+            //                 users.push(userToPush as LLJTUser);
+            //                 user = userToPush as LLJTUser;
+            //             }
+            //             user.email = email;
+            //             await DatabaseUtilsInstance.writeJson('./databases/users.json', users);
+            //             await modalInteraction.reply({ content: '✅ Verification successful! This email is now linked to your account.', ephemeral: true });
+            //         } else {
+            //             await modalInteraction.reply({ content: '❌ Incorrect code. Please try again.', ephemeral: true });
+            //         }
+            //     }
+            // })
 
         }).catch(error => {
             console.error('Error sending verification code email:', error);
-            interaction.reply({ content: 'Failed to send verification code. Please try again later.', ephemeral: true });
+            return { type: 4, data: { content: 'Failed to send verification code. Please try again later.', ephemeral: true } } as InteractionResponse;
         });
+
+        return { type: 4, data: { content: 'A verification code has been sent to your email. Please check your inbox and follow the instructions to verify your email address.', ephemeral: true } } as InteractionResponse;
     },
 };
 

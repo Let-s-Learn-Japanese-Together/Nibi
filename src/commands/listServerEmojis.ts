@@ -1,31 +1,48 @@
-import { ChatInputCommandInteraction, EmbedBuilder, SlashCommandBuilder } from 'discord.js';
-import { config } from '../config';
+import { EmbedBuilder, SlashCommandBuilder } from 'discord.js';
+import { Bindings } from 'hono/types';
 import { Command } from '../types/command';
+import { Interaction } from './../types/Interaction';
+import { InteractionResponse } from './../types/InteractionResponse';
 
-const ping: Command = {
+const listServerEmojis: Command = {
   data: new SlashCommandBuilder()
     .setName('list-server-emojis')
     .setDescription('List all emojis in the server'),
 
-  async execute(interaction: ChatInputCommandInteraction) {
-    const guild = interaction.client.guilds.cache.get(config.discord.guildId);
-    if (!guild) {
-      await interaction.reply('Guild not found.');
-      return;
-    }
+  async execute(interaction: Interaction, env: Bindings): Promise<InteractionResponse> {
+    // const guild = interaction.client.guilds.cache.get(config.discord.guildId);
+    // if (!guild) {
+    //   await interaction.reply('Guild not found.');
+    //   return;
+    // }
 
-    await guild.emojis.fetch();
-    
+    const guild = interaction.guild_id;
+    const rawRequest = {
+      method: 'GET',
+      url: `https://discord.com/api/v10/guilds/${guild}/emojis`,
+      headers: {
+        'Authorization': `Bot ${env.DISCORD_BOT_TOKEN}`,
+        'Content-Type': 'application/json'
+      }
+    };
+
+    const response = await fetch(rawRequest.url, {
+      method: rawRequest.method,
+      headers: rawRequest.headers
+    });
+
+    const emojis = await response.json();
+
     const publicEmojis: string[] = [];
     const roleGroups: Map<string, string[]> = new Map();
 
-    guild.emojis.cache.forEach(emoji => {
+    emojis.forEach((emoji: { roles: any[]; }) => {
       const emojiDisplay = `${emoji}`;
       
-      if (!emoji.roles || emoji.roles.cache.size === 0) {
+      if (!emoji.roles || emoji.roles.length === 0) {
         publicEmojis.push(emojiDisplay);
       } else {
-        emoji.roles.cache.forEach(role => {
+        emoji.roles.forEach((role: { id: string; }) => {
           if (!roleGroups.has(role.id)) {
             roleGroups.set(role.id, []);
           }
@@ -55,8 +72,9 @@ const ping: Command = {
 
     embed.setDescription(description);
 
-    await interaction.reply({ content: '', embeds: [embed] });
+    const interactionResponse: InteractionResponse = { type: 4, data: { embeds: [embed] } };
+    return interactionResponse;
   },
 };
 
-export default ping;
+export default listServerEmojis;

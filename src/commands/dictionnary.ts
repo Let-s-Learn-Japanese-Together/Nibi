@@ -1,8 +1,10 @@
-import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
-import { Command } from '../types/command';
+import { EmbedBuilder, SlashCommandBuilder } from 'discord.js';
 import translate from 'google-translate-api-x';
 import Kuroshiro from 'kuroshiro';
 import KuromojiAnalyzer from 'kuroshiro-analyzer-kuromoji';
+import { Command } from '../types/command';
+import { Bindings } from './../../node_modules/hono/dist/types/types.d';
+import { Interaction } from './../types/Interaction';
 
 // Cache pour éviter trop d'appels API
 const translationCache = new Map<string, any>();
@@ -21,14 +23,14 @@ async function initKuroshiro() {
 
 async function detectAndTranslate(word: string, targetLang: 'ja' | 'fr' | 'en' = 'ja', allowedSourceLangs?: string[]) {
   const cacheKey = `${word}-${targetLang}`;
-  
+
   if (translationCache.has(cacheKey)) {
     return translationCache.get(cacheKey);
   }
-  
+
   try {
     const result = await translate(word, { to: targetLang });
-    
+
     // Si on a des langues autorisées et que la langue détectée n'est pas dedans
     if (allowedSourceLangs && !allowedSourceLangs.includes(result.from.language.iso)) {
       // Forcer la langue à 'en' par défaut si non détectée correctement
@@ -40,14 +42,14 @@ async function detectAndTranslate(word: string, targetLang: 'ja' | 'fr' | 'en' =
         confidence: 0.7 // Confidence réduite car forcée
       };
     }
-    
+
     const translation = {
       original: word,
       translated: result.text,
       detectedLang: result.from.language.iso,
       confidence: result.from.language.didYouMean ? 0.8 : 1.0
     };
-    
+
     translationCache.set(cacheKey, translation);
     return translation;
   } catch (error) {
@@ -59,16 +61,16 @@ async function detectAndTranslate(word: string, targetLang: 'ja' | 'fr' | 'en' =
 // Fonction simple pour détecter des mots français communs
 function isFrenchWord(word: string): boolean {
   const frenchWords = [
-    'bonjour', 'bonsoir', 'salut', 'merci', 'oui', 'non', 'chat', 'chien', 
-    'eau', 'feu', 'maison', 'voiture', 'rouge', 'bleu', 'vert', 'noir', 
+    'bonjour', 'bonsoir', 'salut', 'merci', 'oui', 'non', 'chat', 'chien',
+    'eau', 'feu', 'maison', 'voiture', 'rouge', 'bleu', 'vert', 'noir',
     'blanc', 'jaune', 'grand', 'petit', 'bon', 'mauvais', 'nouveau', 'vieux',
     'homme', 'femme', 'enfant', 'père', 'mère', 'frère', 'sœur', 'ami',
     'temps', 'jour', 'nuit', 'matin', 'soir', 'année', 'mois', 'semaine'
   ];
-  
+
   // Vérification des caractères accentués français
   const hasAccents = /[àâäéèêëïîôöùûüÿç]/i.test(word);
-  
+
   return frenchWords.includes(word.toLowerCase()) || hasAccents;
 }
 
@@ -94,14 +96,14 @@ function toRomaji(hiraganaText: string): string {
     'ー': '-', // allongement
     ' ': ' ' // espace
   };
-  
+
   let result = '';
   const chars = hiraganaText.split('');
-  
+
   for (let i = 0; i < chars.length; i++) {
     const char = chars[i];
     const nextChar = chars[i + 1];
-    
+
     // Gestion du petit tsu (っ) - double la consonne suivante
     if (char === 'っ' && nextChar) {
       const nextRomaji = kanaToRomaji[nextChar];
@@ -114,7 +116,7 @@ function toRomaji(hiraganaText: string): string {
       result += char; // Garder les caractères non mappés
     }
   }
-  
+
   return result;
 }
 
@@ -122,17 +124,17 @@ function toRomaji(hiraganaText: string): string {
 async function getKanaForms(text: string): Promise<{ hiragana: string; katakana: string }> {
   try {
     const kuro = await initKuroshiro();
-    
+
     // Convertir en hiragana
     const hiragana = await kuro.convert(text, { to: 'hiragana' });
-    
+
     // Convertir en katakana
     const katakana = await kuro.convert(text, { to: 'katakana' });
-    
+
     return { hiragana, katakana };
   } catch (error) {
     console.error('Kuroshiro conversion error:', error);
-    
+
     // Fallback sur l'ancienne méthode si Kuroshiro échoue
     const hiraganaMap: { [key: string]: string } = {
       'ア': 'あ', 'イ': 'い', 'ウ': 'う', 'エ': 'え', 'オ': 'お',
@@ -151,7 +153,7 @@ async function getKanaForms(text: string): Promise<{ hiragana: string; katakana:
       'ラ': 'ら', 'リ': 'り', 'ル': 'る', 'レ': 'れ', 'ロ': 'ろ',
       'ワ': 'わ', 'ヰ': 'ゐ', 'ヱ': 'ゑ', 'ヲ': 'を', 'ン': 'ん'
     };
-    
+
     const katakanaMap: { [key: string]: string } = {
       'あ': 'ア', 'い': 'イ', 'う': 'ウ', 'え': 'エ', 'お': 'オ',
       'か': 'カ', 'き': 'キ', 'く': 'ク', 'け': 'ケ', 'こ': 'コ',
@@ -169,15 +171,15 @@ async function getKanaForms(text: string): Promise<{ hiragana: string; katakana:
       'ら': 'ラ', 'り': 'リ', 'る': 'ル', 'れ': 'レ', 'ろ': 'ロ',
       'わ': 'ワ', 'ゐ': 'ヰ', 'ゑ': 'ヱ', 'を': 'ヲ', 'ん': 'ン'
     };
-    
+
     let hiragana = '';
     let katakana = '';
-    
+
     for (const char of text) {
       hiragana += hiraganaMap[char] || char;
       katakana += katakanaMap[char] || char;
     }
-    
+
     return { hiragana, katakana };
   }
 }
@@ -215,14 +217,14 @@ function romajiToHiragana(romaji: string): string {
     'ra': 'ら', 'ri': 'り', 'ru': 'る', 're': 'れ', 'ro': 'ろ',
     'wa': 'わ', 'wo': 'を', 'n': 'ん'
   };
-  
+
   let result = '';
   let i = 0;
   const text = romaji.toLowerCase();
-  
+
   while (i < text.length) {
     let found = false;
-    
+
     // Essayer les combinaisons de 3 caractères d'abord, puis 2, puis 1
     for (let len = 3; len >= 1; len--) {
       const substr = text.substr(i, len);
@@ -233,13 +235,13 @@ function romajiToHiragana(romaji: string): string {
         break;
       }
     }
-    
+
     if (!found) {
       result += text[i];
       i++;
     }
   }
-  
+
   return result;
 }
 
@@ -249,7 +251,7 @@ async function prepareJapaneseForTranslation(word: string): Promise<string> {
   if (isRomaji(word)) {
     return romajiToHiragana(word);
   }
-  
+
   // Si c'est déjà en japonais (hiragana, katakana, kanji), le retourner tel quel
   return word;
 }
@@ -288,27 +290,31 @@ const dictionary_cmd: Command = {
         )
     ),
 
-  async execute(interaction: ChatInputCommandInteraction) {
-    await interaction.deferReply();
-    
-    const subcommand = interaction.options.getSubcommand();
-    
+  async execute(interaction: Interaction, env: Bindings) {
+    // await interaction.deferReply();
+
+    // const subcommand = interaction.options.getSubcommand();
+    const subcommandOption = interaction.data?.options?.find(opt => opt.name === 'to-japanese' || opt.name === 'from-japanese');
+    const subcommand = subcommandOption?.name;
+
     try {
       if (subcommand === 'to-japanese') {
-        const word = interaction.options.getString('word', true);
+        // const word = interaction.options.getString('word', true);
+        const wordOption = interaction.data?.options?.find(opt => opt.name === 'word');
+        const word = (wordOption?.value as string) || '';
         // Limiter la détection aux langues françaises et anglaises seulement
         const result = await detectAndTranslate(word, 'ja', ['fr', 'en']);
-        
+
         if (!result) {
           const embed = new EmbedBuilder()
             .setColor(0xFF0000)
             .setTitle('❌ Translation Error')
             .setDescription('Unable to translate the word. Please try again.');
-          
-          await interaction.editReply({ embeds: [embed] });
-          return;
+
+          // await interaction.editReply({ embeds: [embed] });
+          return { type: 4, data: { embeds: [embed] } };
         }
-        
+
         // Vérifier que la langue détectée est bien français ou anglais
         if (!['fr', 'en'].includes(result.detectedLang)) {
           const embed = new EmbedBuilder()
@@ -320,15 +326,15 @@ const dictionary_cmd: Command = {
               value: result.detectedLang.toUpperCase(),
               inline: true
             });
-          
-          await interaction.editReply({ embeds: [embed] });
-          return;
+
+          // await interaction.editReply({ embeds: [embed] });
+          return { type: 4, data: { embeds: [embed] } };
         }
-        
+
         const kanaForms = await getKanaForms(result.translated);
         const romaji = toRomaji(kanaForms.hiragana);
         const sourceFlag = getLanguageFlag(result.detectedLang);
-        
+
         const embed = new EmbedBuilder()
           .setColor(0x00FF00)
           .setTitle('🇯🇵 Translation to Japanese')
@@ -361,35 +367,38 @@ const dictionary_cmd: Command = {
           )
           .setFooter({ text: `Confidence: ${(result.confidence * 100).toFixed(0)}%` })
           .setTimestamp();
-        
-        await interaction.editReply({ embeds: [embed] });
-        
+
+        // await interaction.editReply({ embeds: [embed] });
+        return { type: 4, data: { embeds: [embed] } };
+
       } else if (subcommand === 'from-japanese') {
-        const word = interaction.options.getString('word', true);
-        const target = interaction.options.getString('target', true);
-        
+        const wordOption = interaction.data?.options?.find(opt => opt.name === 'word');
+        const word = (wordOption?.value as string) || '';
+        const targetOption = interaction.data?.options?.find(opt => opt.name === 'target');
+        const target = (targetOption?.value as string) || '';
+
         // Préparer le mot japonais pour la traduction
         const preparedWord = await prepareJapaneseForTranslation(word);
-        
+
         // Traduire vers la langue cible
         const result = await detectAndTranslate(preparedWord, target as 'fr' | 'en');
-        
+
         if (!result) {
           const embed = new EmbedBuilder()
             .setColor(0xFF0000)
             .setTitle('❌ Translation Error')
             .setDescription('Unable to translate the word. Please try again.');
-          
-          await interaction.editReply({ embeds: [embed] });
-          return;
+
+          // await interaction.editReply({ embeds: [embed] });
+          return { type: 4, data: { embeds: [embed] } };
         }
-        
+
         const targetFlag = getLanguageFlag(target);
-        
+
         // Obtenir toutes les formes japonaises à partir du mot original
         let kanaForms: { hiragana: string; katakana: string };
         let displayWord = word;
-        
+
         if (isRomaji(word)) {
           // Si l'entrée était en romaji, utiliser la conversion
           const hiraganaFromRomaji = romajiToHiragana(word);
@@ -399,9 +408,9 @@ const dictionary_cmd: Command = {
           // Si l'entrée était déjà en japonais, l'utiliser directement
           kanaForms = await getKanaForms(word);
         }
-        
+
         const romaji = toRomaji(kanaForms.hiragana);
-        
+
         const embed = new EmbedBuilder()
           .setColor(0x00FF00)
           .setTitle(`${targetFlag} Translation from Japanese`)
@@ -434,20 +443,24 @@ const dictionary_cmd: Command = {
           )
           .setFooter({ text: `Target: ${target.toUpperCase()}` })
           .setTimestamp();
-        
-        await interaction.editReply({ embeds: [embed] });
+
+        // await interaction.editReply({ embeds: [embed] });
+        return { type: 4, data: { embeds: [embed] } };
       }
-      
+
     } catch (error) {
       console.error('Command execution error:', error);
-      
+
       const embed = new EmbedBuilder()
         .setColor(0xFF0000)
         .setTitle('❌ Error')
         .setDescription('An error occurred while processing your request.');
-      
-      await interaction.editReply({ embeds: [embed] });
+
+      // await interaction.editReply({ embeds: [embed] });
+      return { type: 4, data: { embeds: [embed] } };
     }
+
+    return { type: 4, data: { content: 'Invalid subcommand.' } };
   },
 };
 
