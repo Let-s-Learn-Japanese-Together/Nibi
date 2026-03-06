@@ -18,33 +18,30 @@ app.post('/api/interactions', async (c) => {
     const body = await c.req.text();
 
     if (!c.env) return c.text('Environment variables not found', 500);
-
-    // const PUBLIC_KEY = process.env.PUBLIC_KEY || "0b390e804e408a8d3a233a1ccf8d9cc95f36c3b44feab3a73fd931b3ce71693d";
     const PUBLIC_KEY = c.env.PUBLIC_KEY as string;
 
     if (!signature || !timestamp || !PUBLIC_KEY) {
-        console.log('Missing signature, timestamp, or public key');
-        if (!signature) console.log('Missing signature');
-        if (!timestamp) console.log('Missing timestamp');
-        if (!PUBLIC_KEY) console.log('Missing public key');
-        console.log('Request headers:', {
-            signature: signature ? '[present]' : '[missing]',
-            timestamp: timestamp ? '[present]' : '[missing]',
-            PUBLIC_KEY: PUBLIC_KEY ? '[present]' : '[missing]'
-        });
+        console.warn('Missing signature, timestamp, or public key');
+        if (!signature) console.warn('Missing signature');
+        if (!timestamp) console.warn('Missing timestamp');
+        if (!PUBLIC_KEY) console.warn('Missing public key');
+        // console.log('Request headers:', {
+        //     signature: signature ? '[present]' : '[missing]',
+        //     timestamp: timestamp ? '[present]' : '[missing]',
+        //     PUBLIC_KEY: PUBLIC_KEY ? '[present]' : '[missing]'
+        // });
         return c.text('invalid request headers', 400);
 
     }
 
     const isValid = verifyKey(body, signature, timestamp, PUBLIC_KEY);
     if (!isValid) {
-        console.log('Invalid request signature');
-        console.log('Request body:', body);
+        console.warn('Invalid request signature');
+        console.warn('Request body:', body);
         return c.text('invalid request signature', 401);
     }
 
     const interaction = JSON.parse(body);
-    // console.log('Received interaction', interaction);
 
     // Discord PING - respond with PONG
     if (interaction.type === 1) {
@@ -86,9 +83,7 @@ app.post('/api/interactions', async (c) => {
         console.log('Received modal submit interaction');
         if (interaction.data.custom_id.startsWith('verify_code_modal:')) {
             const email = interaction.data.custom_id.split(':')[1];
-            console.log(`Extracted email from custom_id: ${email}`);
             const code = interaction.data.components[0].components[0].value;
-            console.log(`User submitted verification code: ${code}`, seededCode(email + c.env.EMAIL_HASH).toString());
             if(code == seededCode(email + c.env.EMAIL_HASH).toString()) {
                 return c.json({
                     type: 4,
@@ -101,14 +96,7 @@ app.post('/api/interactions', async (c) => {
                  });
             }
         }
-        // return c.json({
-        //     type: 6 // ACK without response
-        //  });
     }
-
-    // console.log('Unhandled interaction type:', interaction.type);
-    // console.log('Interaction data:', interaction);
-
     return c.text('ok');
 });
 
