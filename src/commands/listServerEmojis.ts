@@ -12,7 +12,7 @@ const listServerEmojis: Command = {
       method: 'GET',
       url: `https://discord.com/api/v10/guilds/${guild}/emojis`,
       headers: {
-        'Authorization': `Bot ${env.DISCORD_BOT_TOKEN}`,
+        'Authorization': `Bot ${env.BOT_TOKEN}`,
         'Content-Type': 'application/json'
       }
     };
@@ -23,21 +23,21 @@ const listServerEmojis: Command = {
     });
 
     const emojis = await response.json();
-
+    
     const publicEmojis: string[] = [];
     const roleGroups: Map<string, string[]> = new Map();
 
-    emojis.forEach((emoji: { roles: any[]; }) => {
-      const emojiDisplay = `${emoji}`;
+    emojis.forEach((emoji: any) => {
+      const emojiDisplay = `<:${emoji.name}:${emoji.id}>`;
 
       if (!emoji.roles || emoji.roles.length === 0) {
         publicEmojis.push(emojiDisplay);
       } else {
-        emoji.roles.forEach((role: { id: string; }) => {
-          if (!roleGroups.has(role.id)) {
-            roleGroups.set(role.id, []);
+        emoji.roles.forEach((role: string) => {
+          if (!roleGroups.has(role)) {
+            roleGroups.set(role, []);
           }
-          roleGroups.get(role.id)!.push(emojiDisplay);
+          roleGroups.get(role)!.push(emojiDisplay);
         });
       }
     });

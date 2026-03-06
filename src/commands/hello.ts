@@ -7,42 +7,64 @@ const hello: Command = {
     // const targetUser = interaction.options.getUser('user') || interaction.user;
     // const style = interaction.options.getString('style') || 'random';
 
-    const targetUser = interaction.member.user.global_name || interaction.member.user.username;
-    if (!interaction.data.options) {
-      return { type: 4, data: { content: `Konnichiwa, ${targetUser}-san! ☀️` } };
-    }
-    const styleOption = interaction.data.options.find((o: any) => o.name === 'style');
-    const style = interaction.data.options.find((o: any) => o.name === 'style')?.value || 'random';
+    // const targetUser = interaction.member.user.global_name || interaction.member.user.username;
+    const targetUser = interaction.data.options?.find((o: any) => o.name === 'user')?.value || interaction.member.user.global_name || interaction.member.user.username;
 
-    const greetings = {
-      morning: `Ohayo gozaimasu, ${targetUser}-san! 🌅`,
-      afternoon: `Konnichiwa, ${targetUser}-san! ☀️`,
-      evening: `Konbanwa, ${targetUser}-san! 🌙`,
-      first: `Hajimemashite, ${targetUser}-san! Douzo yoroshiku onegaishimasu! 🙇‍♂️`,
-      casual: `Genki desu ka, ${targetUser}-san? 😊`,
+    const userFetchRawRequest = {
+      method: 'GET',
+      url: `https://discord.com/api/v10/users/${targetUser}`,
+      headers: {
+        'Authorization': `Bot ${env.BOT_TOKEN}`,
+        'Content-Type': 'application/json'
+      }
     };
-
-    let greeting: string;
-    if (style === 'random') {
-      const randomGreetings = [
-        `Konnichiwa, ${targetUser}-san! ☀️`,
-        `Ohayo gozaimasu, ${targetUser}-san! 🌅`,
-        `Konbanwa, ${targetUser}-san! 🌙`,
-        `Hajimemashite, ${targetUser}-san! Douzo yoroshiku! 🙇‍♂️`,
-        `Genki desu ka, ${targetUser}-san? 😊`,
-        `Ogenki desu ka, ${targetUser}-san? 🌸`,
-        `Otsukaresama desu, ${targetUser}-san! 💪`,
-        `Arigatou gozaimasu, ${targetUser}-san! 🙏`,
-        `Sumimasen, ${targetUser}-san! Douzo yoroshiku! 😌`
-      ];
-      const randomIndex = Math.floor(Math.random() * randomGreetings.length);
-      greeting = randomGreetings[randomIndex]!;
+    const userResponse = await fetch(userFetchRawRequest.url, {
+      method: userFetchRawRequest.method,
+      headers: userFetchRawRequest.headers
+    });
+    if (!userResponse.ok) {
+      console.error('Failed to fetch user data:', userResponse.status, await userResponse.text());
     } else {
-      greeting = greetings[style as keyof typeof greetings] || greetings.afternoon;
-    }
+      const userData = await userResponse.json();
+      // console.log('Fetched user data:', userData);
 
-    // await interaction.reply(greeting);
-    return { type: 4, data: { content: greeting } };
+      if (!interaction.data.options) {
+        return { type: 4, data: { content: `Konnichiwa, ${userData.username}-san! ☀️` } };
+      }
+
+      const style = interaction.data.options.find((o: any) => o.name === 'style')?.value || 'random';
+
+      const greetings = {
+        morning: `Ohayo gozaimasu, ${userData.username}-san! 🌅`,
+        afternoon: `Konnichiwa, ${userData.username}-san! ☀️`,
+        evening: `Konbanwa, ${userData.username}-san! 🌙`,
+        first: `Hajimemashite, ${userData.username}-san! Douzo yoroshiku onegaishimasu! 🙇‍♂️`,
+        casual: `Genki desu ka, ${userData.username}-san? 😊`,
+      };
+
+      let greeting: string;
+      if (style === 'random') {
+        const randomGreetings = [
+          `Konnichiwa, ${userData.username}-san! ☀️`,
+          `Ohayo gozaimasu, ${userData.username}-san! 🌅`,
+          `Konbanwa, ${userData.username}-san! 🌙`,
+          `Hajimemashite, ${userData.username}-san! Douzo yoroshiku! 🙇‍♂️`,
+          `Genki desu ka, ${userData.username}-san? 😊`,
+          `Ogenki desu ka, ${userData.username}-san? 🌸`,
+          `Otsukaresama desu, ${userData.username}-san! 💪`,
+          `Arigatou gozaimasu, ${userData.username}-san! 🙏`,
+          `Sumimasen, ${userData.username}-san! Douzo yoroshiku! 😌`
+        ];
+        const randomIndex = Math.floor(Math.random() * randomGreetings.length);
+        greeting = randomGreetings[randomIndex]!;
+      } else {
+        greeting = greetings[style as keyof typeof greetings] || greetings.afternoon;
+      }
+
+      // await interaction.reply(greeting);
+      return { type: 4, data: { content: greeting } };
+    }
+    return { type: 4, data: { content: `Hello, ${targetUser}!` } };
   },
 };
 

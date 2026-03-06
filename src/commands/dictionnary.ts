@@ -26,8 +26,12 @@ async function detectAndTranslate(word: string, targetLang: 'ja' | 'fr' | 'en' =
     return translationCache.get(cacheKey);
   }
 
+  console.log(`Translating word: "${word}" to ${targetLang} with allowed source languages: ${allowedSourceLangs?.join(', ') || 'none'}`);
+
   try {
     const result = await translate(word, { to: targetLang });
+
+    console.log(result)
 
     // Si on a des langues autorisées et que la langue détectée n'est pas dedans
     if (allowedSourceLangs && !allowedSourceLangs.includes(result.from.language.iso)) {
@@ -131,7 +135,7 @@ async function getKanaForms(text: string): Promise<{ hiragana: string; katakana:
 
     return { hiragana, katakana };
   } catch (error) {
-    console.error('Kuroshiro conversion error:', error);
+    // console.error('Kuroshiro conversion error:', error);
 
     // Fallback sur l'ancienne méthode si Kuroshiro échoue
     const hiraganaMap: { [key: string]: string } = {
@@ -261,10 +265,28 @@ const dictionary_cmd: Command = {
     const subcommandOption = interaction.data?.options?.find(opt => opt.name === 'to-japanese' || opt.name === 'from-japanese');
     const subcommand = subcommandOption?.name;
 
+    if(!subcommand) {
+      return {
+        type: 4,
+        data: {
+          embeds: [{
+            color: 0xFF0000,
+            title: '❌ Invalid Command',
+            description: 'Subcommand not found. Please use "to-japanese" or "from-japanese".'
+          }]
+        }
+      };
+    }
+    
+    let word = '';
+    if (subcommand === 'to-japanese') {
+      word = (subcommandOption.options as any)?.find((opt: { name: string; }) => opt.name === 'word')?.value as string || '';
+    } else if (subcommand === 'from-japanese') {
+      word = (subcommandOption.options as any)?.find((opt: { name: string; }) => opt.name === 'word')?.value as string || '';
+    }
+
     try {
       if (subcommand === 'to-japanese') {
-        const wordOption = interaction.data?.options?.find(opt => opt.name === 'word');
-        const word = (wordOption?.value as string) || '';
         const result = await detectAndTranslate(word, 'ja', ['fr', 'en']);
 
         if (!result) {
@@ -318,9 +340,9 @@ const dictionary_cmd: Command = {
         };
 
       } else if (subcommand === 'from-japanese') {
-        const wordOption = interaction.data?.options?.find(opt => opt.name === 'word');
+        const wordOption = (subcommandOption.options as any)?.find((opt: { name: string; }) => opt.name === 'word');
         const word = (wordOption?.value as string) || '';
-        const targetOption = interaction.data?.options?.find(opt => opt.name === 'target');
+        const targetOption = (subcommandOption.options as any)?.find((opt: { name: string; }) => opt.name === 'target');
         const target = (targetOption?.value as string) || '';
 
         const preparedWord = await prepareJapaneseForTranslation(word);
