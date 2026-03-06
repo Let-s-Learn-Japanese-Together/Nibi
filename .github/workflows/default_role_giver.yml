@@ -1,0 +1,29 @@
+name: Default Role Giver
+
+on:
+  schedule:
+    - cron: '0 * * * *' # hourly
+  workflow_dispatch:
+
+jobs:
+  run-daemon:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Run defaultRoleGiver script
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          GUILD_ID: ${{ secrets.GUILD_ID }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          STAFF_ROLE_ID: ${{ secrets.STAFF_ROLE_ID }}
+          NORMAL_ROLE_ID: ${{ secrets.NORMAL_ROLE_ID }}
+          GRAD_ROLE_ID: ${{ secrets.GRAD_ROLE_ID }}
+          BOT_ROLE_ID: ${{ secrets.BOT_ROLE_ID }}
+        run: pnpm exec ts-node src/daemons-gh/defaultRoleGiver.ts

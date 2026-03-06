@@ -21,18 +21,30 @@ export class DatabaseUtils {
 
   private async supabaseRead(key: string): Promise<any> {
     if (!this.supabase) throw new Error('Supabase client not initialized');
-    const { data, error } = await this.supabase
-      .from('kv')
-      .select('value')
-      .eq('key', key)
-      .single();
-    if (error) {
-      if (error.code === 'PGRST116' || error.code === 'PGRST117') {
+
+    try {
+      const { data, error } = await this.supabase
+        .from('kv')
+        .select('value')
+        .eq('key', key)
+        .single();
+      if (error) {
+        // 116 = no rows, 117 = no data
+        if (error.code === 'PGRST116' || error.code === 'PGRST117') {
+          return null;
+        }
+        throw error;
+      }
+      return data?.value ?? null;
+    } catch (err: any) {
+      // Supabase throws a generic Error if the table doesn't exist
+      if (err.message && err.message.includes("Could not find the table")) {
+        console.warn('Supabase table `kv` not found; returning null.\n' +
+          'Make sure you have created the table with `key text primary key, value jsonb`.');
         return null;
       }
-      throw error;
+      throw err;
     }
-    return data?.value ?? null;
   }
 
   private async supabaseWrite(key: string, value: any): Promise<void> {
@@ -47,6 +59,22 @@ export class DatabaseUtils {
   }
 
   async writeJson(key: string, data: any): Promise<void> {
-    await this.supabaseWrite(key, data);
+    try {
+      await this.supabaseWrite(key, data);
+    } catch (err: any) {
+      if (
+        err.message &&
+        err.message.includes('violates row-level security policy')
+      ) {
+        console.warn(
+          "Supabase write failed due to row-level security. " +
+            "Ensure you have disabled RLS on the `kv` table or added a " +
+            "policy allowing the anon (or service role) key to INSERT/UPDATE. " +
+            "Example SQL:\n" +
+            "  alter table public.kv enable row level security;\n" +
+            "  create policy anon_rw on public.kv for all using (true);");
+      }
+      throw err;
+    }
   }
 }

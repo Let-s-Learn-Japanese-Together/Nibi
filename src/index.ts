@@ -1,3 +1,4 @@
+import { DatabaseUtils } from './utils/databaseUtils';
 // polyfills need to be registered before any modules that may use XMLHttpRequest
 // (kuromoji's browser loader relies on it when running inside the worker bundle).
 import './utils/polyfills';
@@ -89,15 +90,32 @@ app.post('/api/interactions', async (c) => {
             const email = interaction.data.custom_id.split(':')[1];
             const code = interaction.data.components[0].components[0].value;
             if(code == seededCode(email + c.env.EMAIL_HASH).toString()) {
+                const DatabaseUtilsInstance = new DatabaseUtils({
+                    SUPABASE_URL: c.env.SUPABASE_URL as string || '',
+                    SUPABASE_ANON_KEY: c.env.SUPABASE_ANON_KEY as string || '',
+                });
+                let users = await DatabaseUtilsInstance.readJson('users') as Array<{ id: string, email?: string }>;
+                // console.log('Existing users in database:', users);
+                const userIndex = users && users.findIndex(u => u.email === email);
+                if(!userIndex || userIndex === -1) {
+                    if (users == null) {
+                        console.warn('No users found in database, initializing with empty array');
+                        users = [];
+                    }
+                    users.push({ id: interaction.member.user.id, email }); // Add new user record
+                } else {
+                    users[userIndex].email = email; // Mark user as verified by setting their email
+                }
+                await DatabaseUtilsInstance.writeJson('users', users);
                 return c.json({
                     type: 4,
                     data: { content: 'Verification successful! You can now use the bot features.', flags: 64}
                 });
             } else {
                 return c.json({
-                    type: 4,
-                    data: { content: 'Invalid verification code. Please try again.', flags: 64}
-                 });
+                    // type: 4,
+                    // data: { content: 'Invalid verification code. Please try again.', flags: 64}
+                 }, 400);
             }
         }
     }

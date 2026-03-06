@@ -63,6 +63,42 @@ Note : `PUBLIC_KEY` est la clé publique de l'application Discord utilisée pou
 
 ### 🔐 Variables d'environnement
 
+> ℹ️ **Table `kv` requise**
+> Le code utilise Supabase comme simple clé/valeur dans une table `kv` (`key text PRIMARY KEY, value jsonb`).
+> Si vous voyez une erreur du type "Could not find the table 'public.kv'", créez la table
+> manuellement via le SQL suivant :
+>
+> ```sql
+> create table if not exists public.kv (
+>   key text primary key,
+>   value jsonb
+> );
+> ```
+>
+> Vous pouvez exécuter cette commande dans l'interface SQL de Supabase ou via
+> le CLI. Les helpers du projet attrapent l'absence de table et retournent
+> `null`, mais le schéma doit exister pour les écritures.
+>
+> **Contrôle d'accès (RLS)** : les nouvelles tables Supabase ont le
+> _row level security_ activé par défaut, ce qui empêche toute écriture
+> via la clé anon. Pour que le bot puisse mettre à jour `kv` vous devez soit :
+>
+> ```sql
+> -- désactiver RLS :
+> alter table public.kv disable row level security;
+>
+> -- ou bien autoriser explicitement la clé anon :
+> alter table public.kv enable row level security;
+> create policy anon_rw on public.kv for all using (true);
+> ```
+>
+> Sans cette configuration, les appels `writeJson` échoueront avec
+> `new row violates row-level security policy for table "kv"`. Le helper
+> affiche désormais un message d'avertissement si l'erreur survient.
+
+
+### 🔐 Variables d'environnement
+
 - **Wrangler secrets** (recommandé pour la production) : 
   ```bash
   wrangler secret put PUBLIC_KEY
@@ -146,6 +182,30 @@ switch (name) {
 Ajoutez aussi des appels à Supabase via `supabase` si vous avez besoin de stocker des données.
 
 ---
+
+## 🤖 Tâches périodiques via GitHub Actions
+
+Le code de l'ancien bot contenait plusieurs *daemons* qui tournaient en continu à l'aide de `discord.js` : gestion du rôle "verified", attribution de rôles de base et vérification des graduations sur Google Sheets.
+Dans la nouvelle version nous pouvons extraire cette logique dans des *actions GitHub* qui s'exécutent sur un horaire et communiquent avec l'API Discord via `fetch` (le package `discord.js` n'est pas nécessaire). Les scripts TypeScript sont placés dans `src/daemons-gh` et trois workflows sont fournis :
+
+| Workflow | Fichier | Cron par défaut |
+|----------|---------|----------------|
+| manage_verified_role | `.github/workflows/manage_verified_role.yml` | toutes les 5 min |
+| verify_graduations | `.github/workflows/verify_graduations.yml` | toutes les 15 min |
+| default_role_giver | `.github/workflows/default_role_giver.yml` | chaque heure |
+
+### Configuration requise
+
+1. **Secrets GitHub**
+   - `BOT_TOKEN` – token du bot Discord
+   - `GUILD_ID` – id du serveur
+   - `SUPABASE_URL` et `SUPABASE_ANON_KEY` (si vous utilisez Supabase pour stocker les listes `users` / `lessons`)
+   - `CHAT_CHANNEL_ID` (pour `verifyGraduations`), `VERIFIED_ROLE_ID`, `STAFF_ROLE_ID`, `NORMAL_ROLE_ID`, `GRAD_ROLE_ID`, `BOT_ROLE_ID` peuvent être ajoutés pour surcharger les valeurs par défaut.
+
+2. Les workflows font un `pnpm install` puis utilisent `ts-node` pour lancer les scripts.
+
+3. Vous pouvez déclencher manuellement chaque action depuis l'onglet *Actions* de GitHub (`workflow_dispatch`).
+
 
 ## 📌 Notes
 
