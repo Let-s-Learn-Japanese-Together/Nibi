@@ -43,6 +43,17 @@ Créez un fichier `.env` (ou utilisez wrangler secrets, voir plus bas) et défin
 PUBLIC_KEY=...
 BOT_TOKEN=...
 APP_ID=...
+
+# configuration de l'envoi d'e‑mails (utilisé par la commande `sendVerificationCode`)
+EMAIL_HOST=smtp.example.com
+EMAIL_PORT=587
+EMAIL_SECURE=false            # true pour 465
+EMAIL_USER=username
+EMAIL_PASSWORD=password
+EMAIL_FROM="noreply@example.com"
+# facultatif : ignore les certificats TLS invalides (voir code)
+EMAIL_TLS_INSECURE=false
+
 # si vous utilisez Supabase :
 SUPABASE_URL=...
 SUPABASE_ANON_KEY=...

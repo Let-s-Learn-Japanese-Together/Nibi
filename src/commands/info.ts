@@ -1,11 +1,8 @@
-import { SlashCommandBuilder } from 'discord.js';
 import { Command } from '../types/command';
 import { InteractionResponse } from '../types/InteractionResponse';
 
 const info: Command = {
-  data: new SlashCommandBuilder()
-    .setName('info')
-    .setDescription('Shows information about the bot'),
+  data: { name: 'info', description: 'Get bot information', type: 1 },
 
   async execute(interaction, env): Promise<InteractionResponse> {
     // const client = interaction.client;

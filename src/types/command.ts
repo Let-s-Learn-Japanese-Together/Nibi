@@ -1,9 +1,12 @@
-import { SlashCommandBuilder, SlashCommandOptionsOnlyBuilder, SlashCommandSubcommandsOnlyBuilder } from 'discord.js';
 import { Bindings } from 'hono/types';
 import { Interaction } from './Interaction';
 import { InteractionResponse } from './InteractionResponse';
 
-export interface Command {
-  data: SlashCommandBuilder | SlashCommandOptionsOnlyBuilder | SlashCommandSubcommandsOnlyBuilder;
+export interface CommandExecute {
   execute: (interaction: Interaction, env: Bindings) => Promise<InteractionResponse>;
 }
+
+export interface Command extends CommandExecute {
+  data: any; 
+}
+

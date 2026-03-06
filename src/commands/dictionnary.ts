@@ -1,9 +1,7 @@
-import { EmbedBuilder, SlashCommandBuilder } from 'discord.js';
 import translate from 'google-translate-api-x';
 import Kuroshiro from 'kuroshiro';
 import KuromojiAnalyzer from 'kuroshiro-analyzer-kuromoji';
 import { Command } from '../types/command';
-import { Bindings } from './../../node_modules/hono/dist/types/types.d';
 import { Interaction } from './../types/Interaction';
 
 // Cache pour éviter trop d'appels API
@@ -257,119 +255,67 @@ async function prepareJapaneseForTranslation(word: string): Promise<string> {
 }
 
 const dictionary_cmd: Command = {
-  data: new SlashCommandBuilder()
-    .setName('dictionary')
-    .setDescription('Translate words between French, English and Japanese')
-    .addSubcommand(subcommand =>
-      subcommand
-        .setName('to-japanese')
-        .setDescription('Translate French or English word to Japanese with romaji')
-        .addStringOption(option =>
-          option.setName('word')
-            .setDescription('French or English word to translate to Japanese')
-            .setRequired(true)
-        )
-    )
-    .addSubcommand(subcommand =>
-      subcommand
-        .setName('from-japanese')
-        .setDescription('Translate from Japanese to French or English')
-        .addStringOption(option =>
-          option.setName('word')
-            .setDescription('Japanese word (hiragana, katakana, kanji, or romaji)')
-            .setRequired(true)
-        )
-        .addStringOption(option =>
-          option.setName('target')
-            .setDescription('Target language')
-            .setRequired(true)
-            .addChoices(
-              { name: 'French 🇫🇷', value: 'fr' },
-              { name: 'English 🇺🇸', value: 'en' }
-            )
-        )
-    ),
+  data: { "options": [{ "type": 1, "name": "to-japanese", "description": "Translate French or English word to Japanese with romaji", "options": [{ "type": 3, "name": "word", "description": "French or English word to translate to Japanese", "required": true }] }, { "type": 1, "name": "from-japanese", "description": "Translate from Japanese to French or English", "options": [{ "type": 3, "name": "word", "description": "Japanese word (hiragana, katakana, kanji, or romaji)", "required": true }, { "type": 3, "choices": [{ "name": "French 🇫🇷", "value": "fr" }, { "name": "English 🇺🇸", "value": "en" }], "name": "target", "description": "Targe    t language", "required": true }] }], "name": "dictionary", "description": "Translate words between French, English and Japanese", "type": 1 },
 
-  async execute(interaction: Interaction, env: Bindings) {
-    // await interaction.deferReply();
-
-    // const subcommand = interaction.options.getSubcommand();
+  async execute(interaction: Interaction) {
     const subcommandOption = interaction.data?.options?.find(opt => opt.name === 'to-japanese' || opt.name === 'from-japanese');
     const subcommand = subcommandOption?.name;
 
     try {
       if (subcommand === 'to-japanese') {
-        // const word = interaction.options.getString('word', true);
         const wordOption = interaction.data?.options?.find(opt => opt.name === 'word');
         const word = (wordOption?.value as string) || '';
-        // Limiter la détection aux langues françaises et anglaises seulement
         const result = await detectAndTranslate(word, 'ja', ['fr', 'en']);
 
         if (!result) {
-          const embed = new EmbedBuilder()
-            .setColor(0xFF0000)
-            .setTitle('❌ Translation Error')
-            .setDescription('Unable to translate the word. Please try again.');
-
-          // await interaction.editReply({ embeds: [embed] });
-          return { type: 4, data: { embeds: [embed] } };
+          return {
+            type: 4,
+            data: {
+              embeds: [{
+                color: 0xFF0000,
+                title: '❌ Translation Error',
+                description: 'Unable to translate the word. Please try again.'
+              }]
+            }
+          };
         }
 
-        // Vérifier que la langue détectée est bien français ou anglais
         if (!['fr', 'en'].includes(result.detectedLang)) {
-          const embed = new EmbedBuilder()
-            .setColor(0xFFAA00)
-            .setTitle('⚠️ Language not supported')
-            .setDescription('This command only supports French and English words.')
-            .addFields({
-              name: 'Detected language',
-              value: result.detectedLang.toUpperCase(),
-              inline: true
-            });
-
-          // await interaction.editReply({ embeds: [embed] });
-          return { type: 4, data: { embeds: [embed] } };
+          return {
+            type: 4,
+            data: {
+              embeds: [{
+                color: 0xFFAA00,
+                title: '⚠️ Language not supported',
+                description: 'This command only supports French and English words.',
+                fields: [{ name: 'Detected language', value: result.detectedLang.toUpperCase(), inline: true }]
+              }]
+            }
+          };
         }
 
         const kanaForms = await getKanaForms(result.translated);
         const romaji = toRomaji(kanaForms.hiragana);
         const sourceFlag = getLanguageFlag(result.detectedLang);
 
-        const embed = new EmbedBuilder()
-          .setColor(0x00FF00)
-          .setTitle('🇯🇵 Translation to Japanese')
-          .addFields(
-            {
-              name: `${sourceFlag} Original`,
-              value: `${word} (${result.detectedLang.toUpperCase()})`,
-              inline: false
-            },
-            {
-              name: '🇯🇵 Japanese (Kanji)',
-              value: result.translated,
-              inline: true
-            },
-            {
-              name: 'ひ Hiragana',
-              value: kanaForms.hiragana,
-              inline: true
-            },
-            {
-              name: 'カ Katakana',
-              value: kanaForms.katakana,
-              inline: true
-            },
-            {
-              name: '📝 Romaji',
-              value: romaji,
-              inline: false
-            }
-          )
-          .setFooter({ text: `Confidence: ${(result.confidence * 100).toFixed(0)}%` })
-          .setTimestamp();
-
-        // await interaction.editReply({ embeds: [embed] });
-        return { type: 4, data: { embeds: [embed] } };
+        return {
+          type: 4,
+          data: {
+            embeds: [{
+              color: 0x00FF00,
+              title: '🇯🇵 Translation to Japanese',
+              fields: [
+                { name: `${sourceFlag} Original`, value: `${word} (${result.detectedLang.toUpperCase()})`, inline: false },
+                { name: '🇯🇵 Japanese (Kanji)', value: result.translated, inline: true },
+                { name: 'ひ Hiragana', value: kanaForms.hiragana, inline: true },
+                { name: 'カ Katakana', value: kanaForms.katakana, inline: true },
+                { name: '📝 Romaji', value: romaji, inline: false }
+              ],
+              footer: { text: `Confidence: ${(result.confidence * 100).toFixed(0)}%` },
+              timestamp: new Date().toISOString()
+            }]
+          }
+        };
 
       } else if (subcommand === 'from-japanese') {
         const wordOption = interaction.data?.options?.find(opt => opt.name === 'word');
@@ -377,91 +323,60 @@ const dictionary_cmd: Command = {
         const targetOption = interaction.data?.options?.find(opt => opt.name === 'target');
         const target = (targetOption?.value as string) || '';
 
-        // Préparer le mot japonais pour la traduction
         const preparedWord = await prepareJapaneseForTranslation(word);
-
-        // Traduire vers la langue cible
         const result = await detectAndTranslate(preparedWord, target as 'fr' | 'en');
 
         if (!result) {
-          const embed = new EmbedBuilder()
-            .setColor(0xFF0000)
-            .setTitle('❌ Translation Error')
-            .setDescription('Unable to translate the word. Please try again.');
-
-          // await interaction.editReply({ embeds: [embed] });
-          return { type: 4, data: { embeds: [embed] } };
+          return {
+            type: 4,
+            data: {
+              embeds: [{
+                color: 0xFF0000,
+                title: '❌ Translation Error',
+                description: 'Unable to translate the word. Please try again.'
+              }]
+            }
+          };
         }
 
         const targetFlag = getLanguageFlag(target);
-
-        // Obtenir toutes les formes japonaises à partir du mot original
-        let kanaForms: { hiragana: string; katakana: string };
-        let displayWord = word;
-
-        if (isRomaji(word)) {
-          // Si l'entrée était en romaji, utiliser la conversion
-          const hiraganaFromRomaji = romajiToHiragana(word);
-          kanaForms = await getKanaForms(hiraganaFromRomaji);
-          displayWord = hiraganaFromRomaji; // Afficher la forme hiragana comme "original"
-        } else {
-          // Si l'entrée était déjà en japonais, l'utiliser directement
-          kanaForms = await getKanaForms(word);
-        }
-
+        const hiraganaFromRomaji = isRomaji(word) ? romajiToHiragana(word) : word;
+        const kanaForms = await getKanaForms(hiraganaFromRomaji);
         const romaji = toRomaji(kanaForms.hiragana);
 
-        const embed = new EmbedBuilder()
-          .setColor(0x00FF00)
-          .setTitle(`${targetFlag} Translation from Japanese`)
-          .addFields(
-            {
-              name: '🇯🇵 Input',
-              value: `${word} ${isRomaji(word) ? '(Romaji)' : ''}`,
-              inline: true
-            },
-            // {
-            //   name: 'ひ Hiragana',
-            //   value: kanaForms.hiragana,
-            //   inline: true
-            // },
-            // {
-            //   name: 'カ Katakana',
-            //   value: kanaForms.katakana,
-            //   inline: true
-            // },
-            // {
-            //   name: '📝 Romaji',
-            //   value: romaji,
-            //   inline: true
-            // },
-            {
-              name: `${targetFlag} Translation`,
-              value: result.translated,
-              inline: true
-            }
-          )
-          .setFooter({ text: `Target: ${target.toUpperCase()}` })
-          .setTimestamp();
-
-        // await interaction.editReply({ embeds: [embed] });
-        return { type: 4, data: { embeds: [embed] } };
+        return {
+          type: 4,
+          data: {
+            embeds: [{
+              color: 0x00FF00,
+              title: `${targetFlag} Translation from Japanese`,
+              fields: [
+                { name: '🇯🇵 Input', value: `${word} ${isRomaji(word) ? '(Romaji)' : ''}`, inline: true },
+                { name: `${targetFlag} Translation`, value: result.translated, inline: true }
+              ],
+              footer: { text: `Target: ${target.toUpperCase()}` },
+              timestamp: new Date().toISOString()
+            }]
+          }
+        };
       }
 
     } catch (error) {
       console.error('Command execution error:', error);
-
-      const embed = new EmbedBuilder()
-        .setColor(0xFF0000)
-        .setTitle('❌ Error')
-        .setDescription('An error occurred while processing your request.');
-
-      // await interaction.editReply({ embeds: [embed] });
-      return { type: 4, data: { embeds: [embed] } };
+      return {
+        type: 4,
+        data: {
+          embeds: [{
+            color: 0xFF0000,
+            title: '❌ Error',
+            description: 'An error occurred while processing your request.'
+          }]
+        }
+      };
     }
 
     return { type: 4, data: { content: 'Invalid subcommand.' } };
-  },
+  }
 };
 
 export default dictionary_cmd;

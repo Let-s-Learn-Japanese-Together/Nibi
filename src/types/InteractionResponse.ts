@@ -4,5 +4,8 @@ export interface InteractionResponse {
     content?: string;
     embeds?: any[];
     flags?: number;
+    components?: any[];
+    custom_id?: string;
+    title?: string;
   };
 }

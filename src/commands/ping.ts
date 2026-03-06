@@ -1,37 +1,18 @@
-import { SlashCommandBuilder } from 'discord.js';
 import { Command } from '../types/command';
-import { InteractionResponse } from '../types/InteractionResponse';
 
 const ping: Command = {
-  data: new SlashCommandBuilder()
-    .setName('ping')
-    .setDescription('Replies with Pong and bot latency!'),
+  data: {
+    name: 'ping',
+    description: 'Replies with Pong!' 
+  },
 
-  async execute(interaction, env) {
-    // const sent = await interaction.reply({ content: 'Pinging...', fetchReply: true });
-    // const send = new Date();
-
-    // const embed = new EmbedBuilder()
-    //   .setColor(0x00FF00)
-    //   .setTitle('🏓 Pong!')
-    //   .addFields(
-    //     {
-    //       name: 'Roundtrip Latency',
-    //       value: `${send.getTime() - interaction.createdTimestamp}ms`,
-    //       inline: true
-    //     },
-    //     {
-    //       name: 'Websocket Heartbeat',
-    //       value: `${interaction.client.ws.ping}ms`,
-    //       inline: true
-    //     }
-    //   )
-    //   .setTimestamp();
-
-    // await interaction.editReply({ content: '', embeds: [embed] });
-    // return { type: 4, data: { embeds: [embed] } };
-    return { type: 4, data: { content: 'Pong!' } } as InteractionResponse;
+  execute: async function(_interaction, _env) {
+    return { type: 4, data: { content: 'Pong!' } };
   },
 };
 
-export default ping;
+// const data = ping.data.toJSON();
+const execute = ping.execute;
+
+export { execute };
+

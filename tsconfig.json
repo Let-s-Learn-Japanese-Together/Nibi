@@ -9,5 +9,5 @@
     "lib": ["dom", "esnext"],
     "skipLibCheck": true
   },
-  "include": ["src/**/*"]
+  "include": ["src/**/*", "sandbox.js"]
 }

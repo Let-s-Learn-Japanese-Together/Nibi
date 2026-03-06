@@ -1,6 +1,14 @@
 import { verifyKey } from 'discord-interactions';
 import { Hono } from 'hono';
-import { handle } from './command-handlers';
+
+// commands imports
+import dictionary from './commands/dictionnary';
+import emojiManagement from './commands/emojiManagment';
+import hello from './commands/hello';
+import listServerEmojis from './commands/listServerEmojis';
+import pronounce from './commands/pronounce';
+import sendVerificationCode, { seededCode } from './commands/sendVerificationCode';
+
 
 const app = new Hono();
 
@@ -47,34 +55,60 @@ app.post('/api/interactions', async (c) => {
     if (interaction.type === 2) {
         const name: string = interaction.data.name;
 
-        // // optional: initialize supabase if not already done
-        // const env2 = (c.env || (process.env as any)) as Record<string, string>;
-        // let supabase: SupabaseClient | undefined =
-        //     env2.SUPABASE_URL && env2.SUPABASE_ANON_KEY
-        //         ? createClient(env2.SUPABASE_URL, env2.SUPABASE_ANON_KEY)
-        //         : undefined;
-
-        // delegate to handler map when available
-        const { execute } = await handle(name as 'dictionnary' | 'emoji-management' | 'hello' | 'info' | 'list-server-emojis' | 'ping' | 'pronounce' | 'send-verification-code');
-        if (execute) {
-            try {
-                const result = await execute(interaction.data.options, c.env);
-                return c.json(result);
-            } catch (err) {
-                console.error('command error', name, err);
-                return c.json({ type: 4, data: { content: 'Erreur interne.', flags: 64 } });
-
+        switch (name) {
+            case 'ping': {
+                return c.json({ type: 4, data: { content: 'Pong!' } });
             }
+            case 'emoji-management':
+                return c.json(await emojiManagement.execute(interaction, c.env));
+            case 'list-server-emojis':
+                return c.json(await listServerEmojis.execute(interaction, c.env));
+            case 'hello': 
+                return c.json(await hello.execute(interaction, c.env));
+            case 'dictionary':
+                return c.json(await dictionary.execute(interaction, c.env));
+            case 'pronounce':
+                return c.json(await pronounce.execute(interaction, c.env));
+            case 'send-verification-code': {
+                return c.json(await sendVerificationCode.execute(interaction, c.env));
+            }
+            default:
+                console.warn('Unknown command received:', name);
+                return c.json({
+                    type: 4,
+                    data: { content: `Unknown command: ${name}` }
+                });
         }
-
-        // fallback message
-        return c.json({
-            type: 4,
-            data: { content: `Commande inconnue: ${name}` },
-        });
     }
 
-    // default fallback
+    // Modal submit - just acknowledge for now
+    if (interaction.type === 5) {
+        console.log('Received modal submit interaction');
+        if (interaction.data.custom_id.startsWith('verify_code_modal:')) {
+            const email = interaction.data.custom_id.split(':')[1];
+            console.log(`Extracted email from custom_id: ${email}`);
+            const code = interaction.data.components[0].components[0].value;
+            console.log(`User submitted verification code: ${code}`, seededCode(email + c.env.EMAIL_HASH).toString());
+            if(code == seededCode(email + c.env.EMAIL_HASH).toString()) {
+                return c.json({
+                    type: 4,
+                    data: { content: 'Verification successful! You can now use the bot features.', flags: 64}
+                });
+            } else {
+                return c.json({
+                    type: 4,
+                    data: { content: 'Invalid verification code. Please try again.', flags: 64}
+                 });
+            }
+        }
+        // return c.json({
+        //     type: 6 // ACK without response
+        //  });
+    }
+
+    // console.log('Unhandled interaction type:', interaction.type);
+    // console.log('Interaction data:', interaction);
+
     return c.text('ok');
 });
 

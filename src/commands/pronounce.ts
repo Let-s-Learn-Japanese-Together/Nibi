@@ -1,9 +1,7 @@
-import { SlashCommandBuilder } from 'discord.js';
 import googleTTS from 'google-tts-api';
 import { Bindings } from 'hono/types';
 import Kuroshiro from 'kuroshiro';
 import KuromojiAnalyzer from 'kuroshiro-analyzer-kuromoji';
-import { config } from '../config';
 import { Command } from '../types/command';
 import { InteractionResponse } from '../types/InteractionResponse';
 import { Interaction } from './../types/Interaction';
@@ -26,10 +24,8 @@ interface DiscordAttachmentResponse {
   }>;
 }
 
-// Instance de Kuroshiro pour la conversion des kanjis
 let kuroshiro: any = null;
 
-// Initialiser Kuroshiro
 async function initKuroshiro() {
   if (!kuroshiro) {
     kuroshiro = new Kuroshiro();
@@ -38,7 +34,6 @@ async function initKuroshiro() {
   return kuroshiro;
 }
 
-// Fonction pour convertir le romaji en hiragana
 function romajiToHiragana(romaji: string): string {
   const romajiToKana: { [key: string]: string } = {
     'a': 'あ', 'i': 'い', 'u': 'う', 'e': 'え', 'o': 'お',
@@ -66,7 +61,7 @@ function romajiToHiragana(romaji: string): string {
     let found = false;
 
     for (let len = 3; len >= 1; len--) {
-      const substr = text.substr(i, len);
+      const substr = text.slice(i, i + len);
       if (romajiToKana[substr]) {
         result += romajiToKana[substr];
         i += len;
@@ -84,24 +79,20 @@ function romajiToHiragana(romaji: string): string {
   return result;
 }
 
-// Fonction pour détecter si un texte est en romaji
 function isRomaji(text: string): boolean {
   return /^[a-zA-Z\s\-']+$/.test(text);
 }
 
-// Fonction pour obtenir le texte hiragana pour le TTS
 async function getHiraganaForTTS(text: string): Promise<string> {
   try {
     const kuro = await initKuroshiro();
 
     let sourceText = text;
 
-    // Si c'est du romaji, le convertir en hiragana d'abord
     if (isRomaji(text)) {
       sourceText = romajiToHiragana(text);
     }
 
-    // Convertir en hiragana
     const hiragana = await kuro.convert(sourceText, { to: 'hiragana' });
     return hiragana;
   } catch (error) {
@@ -110,7 +101,6 @@ async function getHiraganaForTTS(text: string): Promise<string> {
   }
 }
 
-// Fonction pour générer l'audio TTS avec Google TTS (fallback)
 async function generateGoogleTTS(text: string): Promise<Buffer | null> {
   try {
     console.log(`Generating Google TTS for text: "${text}"`);
@@ -132,15 +122,10 @@ async function generateGoogleTTS(text: string): Promise<Buffer | null> {
   }
 }
 
-// Fonction pour générer l'audio TTS avec VOICEVOX (avec fallback Google TTS)
 async function generateTTS(text: string): Promise<Buffer | null> {
   try {
     console.log(`Generating TTS for text: "${text}"`);
 
-    // Essayer d'abord VOICEVOX
-    console.log('Trying VOICEVOX API first...');
-
-    // Étape 1: Demander la synthèse vocale (format form-data comme dans la doc)
     const formData = new URLSearchParams();
     formData.append('text', text.replace(' ', ''));
     formData.append('speaker', '3');
@@ -148,7 +133,7 @@ async function generateTTS(text: string): Promise<Buffer | null> {
     console.log('Sending form data with text:', text);
 
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 10000); // 10 seconds timeout
+    const timeout = setTimeout(() => controller.abort(), 10000);
 
     let response;
     try {
@@ -181,21 +166,19 @@ async function generateTTS(text: string): Promise<Buffer | null> {
       return await generateGoogleTTS(text);
     }
 
-    // Étape 2: Attendre que l'audio soit prêt
     const statusUrl = data.audioStatusUrl;
     const mp3Url = data.mp3DownloadUrl;
 
     console.log(`Status URL: ${statusUrl}`);
     console.log(`MP3 URL: ${mp3Url}`);
 
-    // Vérifier le statut jusqu'à ce que l'audio soit prêt
     let isReady = false;
     let attempts = 0;
-    const maxAttempts = 30; // Maximum 30 secondes d'attente
+    const maxAttempts = 30;
 
     while (!isReady && attempts < maxAttempts) {
       console.log(`Checking status, attempt ${attempts + 1}/${maxAttempts}`);
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Attendre 1 seconde
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
       const statusResponse = await fetch(statusUrl);
       if (statusResponse.ok) {
@@ -216,7 +199,6 @@ async function generateTTS(text: string): Promise<Buffer | null> {
 
     console.log('Audio is ready, downloading...');
 
-    // Étape 3: Télécharger l'audio
     const audioResponse = await fetch(mp3Url);
     if (!audioResponse.ok) {
       console.log('VOICEVOX audio download failed, falling back to Google TTS...');
@@ -235,9 +217,7 @@ async function generateTTS(text: string): Promise<Buffer | null> {
   }
 }
 
-// Fonction pour uploader un fichier vers Discord
-async function uploadToDiscord(audioBuffer: Buffer, channelId: string, isMP3: boolean = true): Promise<string> {
-  // Étape 1: Demander une URL d'upload
+async function uploadToDiscord(audioBuffer: Buffer, channelId: string, isMP3: boolean = true, env: Bindings): Promise<string> {
   const filename = isMP3 ? 'voice-message.mp3' : 'voice-message.ogg';
   const contentType = isMP3 ? 'audio/mpeg' : 'audio/ogg';
 
@@ -253,7 +233,7 @@ async function uploadToDiscord(audioBuffer: Buffer, channelId: string, isMP3: bo
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bot ${config.discord.token}`,
+      'Authorization': `Bot ${env.BOT_TOKEN}`,
     },
     body: JSON.stringify(attachmentRequest),
   });
@@ -270,7 +250,6 @@ async function uploadToDiscord(audioBuffer: Buffer, channelId: string, isMP3: bo
   const uploadUrl = attachmentData.attachments[0].upload_url;
   const uploadFilename = attachmentData.attachments[0].upload_filename;
 
-  // Étape 2: Upload le fichier vers l'URL fournie
   const uploadResponse = await fetch(uploadUrl, {
     method: 'PUT',
     headers: {
@@ -286,22 +265,20 @@ async function uploadToDiscord(audioBuffer: Buffer, channelId: string, isMP3: bo
   return uploadFilename;
 }
 
-// Fonction pour générer une waveform factice
 function generateWaveform(durationSecs: number): string {
-  // Discord limite la waveform à 400 caractères max
   const maxSamples = 400;
-  const samples = Math.min(maxSamples, Math.floor(durationSecs * 50)); // 50 samples par seconde max
+  const samples = Math.min(maxSamples, Math.floor(durationSecs * 50));
   const waveform = new Array(samples).fill(0).map(() => Math.floor(Math.random() * 256));
   return Buffer.from(waveform).toString('base64');
 }
 
-// Fonction pour envoyer un message vocal via l'API REST
 async function sendVoiceMessage(
   channelId: string,
   uploadFilename: string,
   durationSecs: number,
   waveformB64: string,
-  isMP3: boolean = true
+  isMP3: boolean = true,
+  env: Bindings
 ) {
   const filename = isMP3 ? 'voice-message.mp3' : 'voice-message.ogg';
 
@@ -309,10 +286,10 @@ async function sendVoiceMessage(
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bot ${config.discord.token}`,
+      'Authorization': `Bot ${env.BOT_TOKEN}`,
     },
     body: JSON.stringify({
-      flags: 8192, // Voice message flag
+      flags: 8192,
       attachments: [
         {
           id: '0',
@@ -333,84 +310,67 @@ async function sendVoiceMessage(
   return response.json();
 }
 
-const pronounce_cmd: Command = {
-  data: new SlashCommandBuilder()
-    .setName('pronounce')
-    .setDescription('Generate Japanese TTS audio for text')
-    .addStringOption(option =>
-      option.setName('text')
-        .setDescription('Text to pronounce (romaji, hiragana, katakana, or kanji)')
-        .setRequired(true)
-    ),
+const pronounce: Command = {
+  data: {
+    name: 'pronounce',
+    description: 'Generate Japanese TTS audio for text',
+    options: [
+      {
+        type: 3,
+        name: 'text',
+        description: 'Text to pronounce (romaji, hiragana, katakana, or kanji)',
+        required: true
+      }
+    ]
+  },
 
   async execute(interaction: Interaction, env: Bindings): Promise<InteractionResponse> {
-    // Différer la réponse immédiatement pour éviter l'expiration
-    // await interaction.deferReply();
-
-    // const text = interaction.options.getString('text', true);
-    // const text = (interaction.data?.options?.[0]?.value as string) || '';
-    const textOption = interaction.data?.options?.find(opt => opt.name === 'text');
+    const textOption = interaction.data?.options?.find((opt: any) => opt.name === 'text');
     const text = (textOption?.value as string) || '';
     console.log(`Processing pronunciation request for: "${text}"`);
 
     try {
-      // Nettoyer le texte (supprimer les caractères non-japonais problématiques)
       const cleanText = text.trim().replace(/[^\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF\u3400-\u4DBFa-zA-Z0-9\s]/g, '');
       console.log(`Cleaned text: "${cleanText}"`);
 
-      // Convertir le texte en hiragana pour le TTS
       const hiraganaText = await getHiraganaForTTS(cleanText);
       console.log(`Hiragana text: "${hiraganaText}"`);
 
-      // Limiter la longueur du texte (l'API peut avoir des limites)
-      const limitedText = hiraganaText.substring(0, 100); // Limite à 100 caractères
+      const limitedText = hiraganaText.substring(0, 100);
       console.log(`Limited text: "${limitedText}"`);
 
-      // Générer l'audio TTS (avec fallback automatique)
       const audioBuffer = await generateTTS(limitedText);
 
       if (audioBuffer) {
-        // Détecter le format (VOICEVOX = MP3, Google TTS = OGG/MP3)
-        const isMP3 = audioBuffer.subarray(0, 3).toString('hex') === '494433' || // ID3 tag
-          audioBuffer.subarray(0, 2).toString('hex') === 'fff3' ||   // MP3 frame sync
-          audioBuffer.subarray(0, 2).toString('hex') === 'fffb';     // MP3 frame sync
+        const isMP3 = audioBuffer.subarray(0, 3).toString('hex') === '494433' ||
+          audioBuffer.subarray(0, 2).toString('hex') === 'fff3' ||
+          audioBuffer.subarray(0, 2).toString('hex') === 'fffb';
 
         console.log(`Audio format detected: ${isMP3 ? 'MP3' : 'OGG'}`);
 
-        // Upload le fichier sur Discord
-        const uploadFilename = await uploadToDiscord(audioBuffer, interaction.channel.id, isMP3);
-
-        // Estimer la durée (approximative)
+        const uploadFilename = await uploadToDiscord(audioBuffer, interaction.channel.id, isMP3, env);
         const durationSecs = Math.max(1, Math.floor(audioBuffer.length / 16000));
-
-        // Générer une waveform factice
         const waveformB64 = generateWaveform(durationSecs);
 
-        // Répondre avec le message d'information
-        // await interaction.editReply(`${interaction.user.username}, here is the pronunciation for "${text}"`);
-        // Envoyer le message vocal dans le canal
         await sendVoiceMessage(
           interaction.channel.id,
           uploadFilename,
           durationSecs,
           waveformB64,
-          isMP3
+          isMP3,
+          env
         );
         return { type: 4, data: { content: `${interaction.member.user.username}, here is the pronunciation for "${text}"` } };
 
-
-
       } else {
-        // await interaction.editReply('❌ Impossible de générer l\'audio TTS avec VOICEVOX et Google TTS.');
         return { type: 4, data: { content: '❌ Impossible de générer l\'audio TTS avec VOICEVOX et Google TTS.', flags: 64 } };
       }
 
     } catch (error) {
       console.error('Command execution error:', error);
-      // await interaction.editReply('❌ Une erreur s\'est produite lors du traitement.');
       return { type: 4, data: { content: '❌ Une erreur s\'est produite lors du traitement.', flags: 64 } };
     }
   },
 };
 
-export default pronounce_cmd;
+export default pronounce;
