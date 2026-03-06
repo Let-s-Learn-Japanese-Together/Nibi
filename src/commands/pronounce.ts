@@ -26,10 +26,26 @@ interface DiscordAttachmentResponse {
 
 let kuroshiro: any = null;
 
+// To work inside Cloudflare Workers we cannot rely on filesystem access for the
+// kuromoji dictionary.  When the project is bundled the `browser` field in
+// kuromoji's package.json swaps the Node loader for the browser loader which
+// uses `XMLHttpRequest`.  The worker runtime doesn't provide that global, so
+// we polyfill it above in `src/utils/polyfills`.
+//
+// The browser loader also expects the dictionary files to be accessible via
+// HTTP, so we point it at a public CDN.  This avoids having to package the
+// large dictionary payload inside the worker at build time.
+//
+// When running purely in Node (without the bundle) the analyzer would use the
+// Node loader and ignore the URL, so specifying a remote path is harmless.
+const KUROMOJI_DICT_URL = 'https://cdn.jsdelivr.net/npm/kuromoji@0.1.2/dict/';
+
 async function initKuroshiro() {
   if (!kuroshiro) {
     kuroshiro = new Kuroshiro();
-    await kuroshiro.init(new KuromojiAnalyzer());
+    // pass the CDN location so that the browser loader knows where to fetch the
+    // dictionary archives from.  The trailing slash is required.
+    await kuroshiro.init(new KuromojiAnalyzer({ dictPath: KUROMOJI_DICT_URL } as any));
   }
   return kuroshiro;
 }
@@ -361,7 +377,6 @@ const pronounce: Command = {
           env
         );
         return { type: 4, data: { content: `${interaction.member.user.username}, here is the pronunciation for "${text}"` } };
-
       } else {
         return { type: 4, data: { content: '❌ Impossible de générer l\'audio TTS avec VOICEVOX et Google TTS.', flags: 64 } };
       }

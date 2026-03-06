@@ -1,3 +1,6 @@
+// ensure XHR polyfill is loaded for kuromoji's browser loader
+import '../utils/polyfills';
+
 import translate from 'google-translate-api-x';
 import Kuroshiro from 'kuroshiro';
 import KuromojiAnalyzer from 'kuroshiro-analyzer-kuromoji';
@@ -11,10 +14,16 @@ const translationCache = new Map<string, any>();
 let kuroshiro: any = null;
 
 // Initialiser Kuroshiro
+// See comments in pronounce.ts: we point at a CDN dictionary and provide an
+// XMLHttpRequest polyfill so that kuromoji can operate inside the worker
+// bundle.  The constant is duplicated for now to keep each command file
+// self‑contained but it could live in a shared utility.
+const KUROMOJI_DICT_URL = 'https://cdn.jsdelivr.net/npm/kuromoji@0.1.2/dict/';
+
 async function initKuroshiro() {
   if (!kuroshiro) {
     kuroshiro = new Kuroshiro();
-    await kuroshiro.init(new KuromojiAnalyzer());
+    await kuroshiro.init(new KuromojiAnalyzer({ dictPath: KUROMOJI_DICT_URL } as any));
   }
   return kuroshiro;
 }

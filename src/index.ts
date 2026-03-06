@@ -1,3 +1,7 @@
+// polyfills need to be registered before any modules that may use XMLHttpRequest
+// (kuromoji's browser loader relies on it when running inside the worker bundle).
+import './utils/polyfills';
+
 import { verifyKey } from 'discord-interactions';
 import { Hono } from 'hono';
 
