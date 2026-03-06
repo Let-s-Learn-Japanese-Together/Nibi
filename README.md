@@ -69,13 +69,28 @@ Note : `PUBLIC_KEY` est la clé publique de l'application Discord utilisée pou
 
 Les définitions de slash commands sont désormais stockées dans le dossier `src/commands` (un fichier par commande).
 
-Le script `src/register-commands.ts` va automatiquement charger tous les modules trouvés dans ce répertoire :
+Le script `src/register-commands.ts` charge dynamiquement tous les fichiers du dossier `src/commands` :
 
 ```bash
 npm run register-commands
 ```
 
-Ajoutez simplement un nouveau fichier TypeScript exportant un objet `Command` (voir `src/commands/hello.ts` comme exemple) pour que le script le prenne en compte.
+Ajoutez simplement un nouveau fichier TypeScript exportant un objet `Command` (voir `src/commands/hello.ts` comme exemple) pour que le script de registration le prenne en compte. Ces modules ne sont **pas exécutés** dans le worker.
+
+Le code qui s’exécute dans Cloudflare est défini dans `src/command-handlers.ts`. Chaque entrée est une fonction qui reçoit l’objet d’interaction brut et doit renvoyer un **payload JSON** conforme à l’API Discord (type 4 pour réponse). C’est ici que vous utiliserez `databaseUtils` et d’autres utilitaires orientés HTTP.
+
+```ts
+// exemple extrait de command-handlers.ts
+export const commandHandlers = {
+  hello: async (interaction) => {
+    const user = interaction.data.options?.find(o=>o.name==='user')?.value;
+    return { type: 4, data: { content: `Salut ${user||'anon'}` } };
+  },
+  // ...
+};
+```
+
+La séparation permet au worker de rester léger et sans dépendance à `discord.js`.
 
 ---
 

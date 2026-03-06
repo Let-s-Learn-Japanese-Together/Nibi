@@ -1,10 +1,9 @@
-import { SlashCommandBuilder, ChatInputCommandInteraction, AttachmentBuilder } from 'discord.js';
-import { Command } from '../types/command';
+import { ChatInputCommandInteraction, SlashCommandBuilder } from 'discord.js';
+import googleTTS from 'google-tts-api';
 import Kuroshiro from 'kuroshiro';
 import KuromojiAnalyzer from 'kuroshiro-analyzer-kuromoji';
-import fetch from 'node-fetch';
-import googleTTS from 'google-tts-api';
 import { config } from '../config';
+import { Command } from '../types/command';
 
 // Define types for API responses
 interface VoiceVoxResponse {
@@ -120,7 +119,8 @@ async function generateGoogleTTS(text: string): Promise<Buffer | null> {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    const buffer = await response.buffer();
+    const arrayBuffer = await response.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
     console.log(`Google TTS audio downloaded, buffer size: ${buffer.length} bytes`);
     return buffer;
   } catch (error) {
@@ -220,7 +220,8 @@ async function generateTTS(text: string): Promise<Buffer | null> {
       return await generateGoogleTTS(text);
     }
 
-    const buffer = await audioResponse.buffer();
+    const arrayBuffer = await audioResponse.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
     console.log(`VOICEVOX audio downloaded, buffer size: ${buffer.length} bytes`);
     return buffer;
 
@@ -272,7 +273,7 @@ async function uploadToDiscord(audioBuffer: Buffer, channelId: string, isMP3: bo
     headers: {
       'Content-Type': contentType,
     },
-    body: audioBuffer,
+    body: new Uint8Array(audioBuffer),
   });
 
   if (!uploadResponse.ok) {

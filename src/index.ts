@@ -40,26 +40,29 @@ app.post('/interactions', async (c) => {
     const name: string = interaction.data.name;
 
     // optional: initialize supabase if not already done
-    // optional supabase client (can also use process.env directly)
     const env2 = (c.env || (process.env as any)) as Record<string, string>;
     let supabase: SupabaseClient | undefined =
       env2.SUPABASE_URL && env2.SUPABASE_ANON_KEY
         ? createClient(env2.SUPABASE_URL, env2.SUPABASE_ANON_KEY)
         : undefined;
 
-    switch (name) {
-      case 'hello':
-        return c.json({
-          type: 4,
-          data: { content: 'Bonjour depuis Hono et Cloudflare Workers !' },
-        });
-      // Add more commands here, you can use `supabase` inside handlers
-      default:
-        return c.json({
-          type: 4,
-          data: { content: `Commande inconnue: ${name}` },
-        });
+    // delegate to handler map when available
+    const handler = (await import('./command-handlers')).commandHandlers[name];
+    if (handler) {
+      try {
+        const result = await handler(interaction);
+        return c.json(result);
+      } catch (err) {
+        console.error('command error', name, err);
+        return c.json({ type: 4, data: { content: 'Erreur interne.' } });
+      }
     }
+
+    // fallback message
+    return c.json({
+      type: 4,
+      data: { content: `Commande inconnue: ${name}` },
+    });
   }
 
   // default fallback

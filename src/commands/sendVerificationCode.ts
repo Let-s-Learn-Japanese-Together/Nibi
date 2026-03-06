@@ -1,9 +1,9 @@
-import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder, ModalBuilder } from 'discord.js';
-import { Command } from '../types/command';
+import { ChatInputCommandInteraction, ModalBuilder, SlashCommandBuilder } from 'discord.js';
 import { config } from '../config';
-import { sendTemplateEmail } from '../utils/sendEmail';
-import { readJson, writeJson } from '../utils/databaseUtils';
+import { Command } from '../types/command';
 import { LLJTUser } from '../types/user';
+import { readJson, writeJson } from '../utils/databaseUtils';
+import { sendTemplateEmail } from '../utils/sendEmail';
 
 const ping: Command = {
     data: new SlashCommandBuilder()
