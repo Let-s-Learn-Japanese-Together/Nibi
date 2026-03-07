@@ -118,11 +118,11 @@ const sendEmail = async (options, env) => {
             bcc: Array.isArray(options.bcc) ? options.bcc.join(", ") : options.bcc,
             attachments: options.attachments,
         };
-        const info = await transporter.sendMail(mailOptions);
+        await transporter.sendMail(mailOptions);
     }
     catch (error) {
         console.error("Failed to send email:", error);
-        throw new Error(`Failed to send email: ${error instanceof Error ? error.message : "Unknown error"}`);
+        throw new Error(`Failed to send email: ${error instanceof Error ? error.message : "Unknown error"}`, { cause: error });
     }
 };
 exports.sendEmail = sendEmail;
@@ -168,10 +168,10 @@ const sendTemplateEmail = async (to, subject, templateName, templateData = {}, e
         // static asset and `fetch` works at runtime.
         if (templateName === "verificationCode") {
             // If the template is the verification code, use the hardcoded template string
-            const html = verificationEmail.replace(/<%=\s*([\w\.]+)\s*%>/g, (_, key) => {
+            const html = verificationEmail.replace(/<%=\s*([\w.]+)\s*%>/g, (_, key) => {
                 const value = key
                     .split(".")
-                    .reduce((o, k) => (o ? o[k] : ""), templateData);
+                    .reduce((o, k) => o ? o[k] : "", templateData);
                 return value == null ? "" : String(value);
             });
             return (0, exports.sendEmail)({
@@ -186,7 +186,7 @@ const sendTemplateEmail = async (to, subject, templateName, templateData = {}, e
     }
     catch (error) {
         console.error("Failed to render template or send email:", error);
-        throw new Error(`Failed to send template email: ${error instanceof Error ? error.message : "Unknown error"}`);
+        throw new Error(`Failed to send template email: ${error instanceof Error ? error.message : "Unknown error"}`, { cause: error });
     }
 };
 exports.sendTemplateEmail = sendTemplateEmail;

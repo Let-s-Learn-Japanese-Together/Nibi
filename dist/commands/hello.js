@@ -55,8 +55,7 @@ const hello = {
                     data: { content: `Konnichiwa, ${userData.username}-san! ☀️` },
                 };
             }
-            const style = interaction.data.options.find((o) => o.name === "style")?.value ||
-                "random";
+            const style = interaction.data.options.find((o) => o.name === "style")?.value || "random";
             const greetings = {
                 morning: `Ohayo gozaimasu, ${userData.username}-san! 🌅`,
                 afternoon: `Konnichiwa, ${userData.username}-san! ☀️`,

@@ -1,7 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.seededCode = seededCode;
-const databaseUtils_1 = require("../utils/databaseUtils");
 const sendEmail_1 = require("../utils/sendEmail");
 function seededCode(email) {
     let hash = 0;
@@ -24,10 +23,6 @@ const sendVerificationCode = {
         ],
     },
     async execute(interaction, env) {
-        const DatabaseUtilsInstance = new databaseUtils_1.DatabaseUtils({
-            SUPABASE_URL: env["SUPABASE_URL"],
-            SUPABASE_ANON_KEY: env["SUPABASE_ANON_KEY"],
-        });
         if (!interaction.data.options) {
             return {
                 type: 4,

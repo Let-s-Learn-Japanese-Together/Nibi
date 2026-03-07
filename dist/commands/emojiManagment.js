@@ -75,10 +75,10 @@ const emojiManagement = {
                 }
                 else {
                     emoji.roles.forEach((role) => {
-                        if (!roleGroups.has(role.id)) {
-                            roleGroups.set(role.id, []);
+                        if (!roleGroups.has(role)) {
+                            roleGroups.set(role, []);
                         }
-                        roleGroups.get(role.id).push(emojiDisplay);
+                        roleGroups.get(role).push(emojiDisplay);
                     });
                 }
             });

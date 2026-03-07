@@ -1,4 +1,5 @@
 "use strict";
+/* eslint-disable @typescript-eslint/no-unused-vars */
 // Minimal XMLHttpRequest polyfill for environments like Cloudflare Workers
 // where `fetch` is available but `XMLHttpRequest` is not.  Kuromoji's browser
 // dictionary loader relies on XHR when the package is bundled using the

@@ -44,7 +44,7 @@ async function fetchGoogleSheet(id) {
         const cleanedRow = {};
         for (const key in row) {
             const cleanedKey = key.replace(/"/g, "").toLowerCase();
-            let cleanedValue = row[key] ? row[key].replace(/"/g, "") : "";
+            const cleanedValue = row[key] ? row[key].replace(/"/g, "") : "";
             if (cleanedKey.indexOf("mail") !== -1) {
                 cleanedRow["email"] = cleanedValue;
             }

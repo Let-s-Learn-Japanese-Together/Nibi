@@ -89,7 +89,7 @@ async function register() {
         });
         if (!res.ok) {
             const text = await res.text();
-            console.error("Failed to register", command.name, res.status, text);
+            console.error("Failed to register", command.data.name, res.status, text);
         }
         else {
             // registration succeeded

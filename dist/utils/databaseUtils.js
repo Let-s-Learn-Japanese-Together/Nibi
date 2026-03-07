@@ -28,7 +28,8 @@ class DatabaseUtils {
         }
         catch (err) {
             // Supabase throws a generic Error if the table doesn't exist
-            if (err.message && err.message.includes("Could not find the table")) {
+            if (err instanceof Error &&
+                err.message.includes("Could not find the table")) {
                 console.warn("Supabase table `kv` not found; returning null.\n" +
                     "Make sure you have created the table with `key text primary key, value jsonb`.");
                 return null;
@@ -52,7 +53,7 @@ class DatabaseUtils {
             await this.supabaseWrite(key, data);
         }
         catch (err) {
-            if (err.message &&
+            if (err instanceof Error &&
                 err.message.includes("violates row-level security policy")) {
                 console.warn("Supabase write failed due to row-level security. " +
                     "Ensure you have disabled RLS on the `kv` table or added a " +

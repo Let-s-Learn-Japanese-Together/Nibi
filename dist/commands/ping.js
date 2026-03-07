@@ -6,7 +6,7 @@ const ping = {
         name: "ping",
         description: "Replies with Pong!",
     },
-    execute: async function (_interaction, _env) {
+    execute: async function () {
         return { type: 4, data: { content: "Pong!" } };
     },
 };
