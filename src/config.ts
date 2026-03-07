@@ -1,7 +1,5 @@
-import dotenv from 'dotenv';
-
-// Load environment variables
-dotenv.config();
+import dotenv from "dotenv";
+dotenv.config({path: process.cwd() + '/.env'});
 
 export const config = {
   discord: {
