@@ -37,4 +37,12 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
           VERIFIED_ROLE_ID: ${{ secrets.VERIFIED_ROLE_ID }}
+          PUBLIC_KEY: ${{ secrets.PUBLIC_KEY }}
+          EMAIL_USER: ${{ secrets.EMAIL_USER }}
+          EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
+          EMAIL_HOST: ${{ secrets.EMAIL_HOST }}
+          EMAIL_PORT: ${{ secrets.EMAIL_PORT }}
+          EMAIL_SECURE: ${{ secrets.EMAIL_SECURE }}
+          EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
+          APP_ID: ${{ secrets.APP_ID }}
         run: node dist/daemons-gh/manageVerifiedRole.js

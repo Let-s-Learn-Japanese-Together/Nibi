@@ -6,7 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.config = void 0;
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config({ path: process.cwd() + '/.env' });
-console.log('Loaded environment variables:', process.env);
+// console.log('Loaded environment variables:', process.env);
 exports.config = {
     discord: {
         token: process.env.BOT_TOKEN,

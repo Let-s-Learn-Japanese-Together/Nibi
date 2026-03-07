@@ -39,4 +39,13 @@ jobs:
           NORMAL_ROLE_ID: ${{ secrets.NORMAL_ROLE_ID }}
           GRAD_ROLE_ID: ${{ secrets.GRAD_ROLE_ID }}
           BOT_ROLE_ID: ${{ secrets.BOT_ROLE_ID }}
+          PUBLIC_KEY: ${{ secrets.PUBLIC_KEY }}
+          EMAIL_USER: ${{ secrets.EMAIL_USER }}
+          EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
+          EMAIL_HOST: ${{ secrets.EMAIL_HOST }}
+          EMAIL_PORT: ${{ secrets.EMAIL_PORT }}
+          EMAIL_SECURE: ${{ secrets.EMAIL_SECURE }}
+          EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
+          APP_ID: ${{ secrets.APP_ID }}
+
         run: node dist/daemons-gh/defaultRoleGiver.js
