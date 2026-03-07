@@ -1,8 +1,8 @@
-import { Command } from '../types/command';
-import { InteractionResponse } from '../types/InteractionResponse';
+import { Command } from "../types/command";
+import { InteractionResponse } from "../types/InteractionResponse";
 
 const info: Command = {
-  data: { name: 'info', description: 'Get bot information', type: 1 },
+  data: { name: "info", description: "Get bot information", type: 1 },
 
   async execute(interaction, env): Promise<InteractionResponse> {
     // const client = interaction.client;
@@ -66,7 +66,13 @@ const info: Command = {
     // await interaction.editReply({ embeds: [updatedEmbed] });
 
     //WIP command
-    return { type: 4, data: { content: 'This command is still a work in progress. Stay tuned for updates!' } };
+    return {
+      type: 4,
+      data: {
+        content:
+          "This command is still a work in progress. Stay tuned for updates!",
+      },
+    };
   },
 };
 

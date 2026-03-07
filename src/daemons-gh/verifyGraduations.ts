@@ -3,7 +3,7 @@ import { DatabaseUtils } from "../utils/databaseUtils";
 import fetchGoogleSheet from "../utils/fetchGoogleSheet";
 
 import dotenv from "dotenv";
-dotenv.config({path: process.cwd() + '/.env'});
+dotenv.config({ path: process.cwd() + "/.env" });
 
 const BOT_TOKEN = process.env.BOT_TOKEN || config.discord.token;
 const GUILD_ID = process.env.GUILD_ID || config.discord.guildId;
@@ -57,7 +57,8 @@ async function removeRole(memberId: string, roleId: string) {
 (async () => {
   try {
     const lessons: any[] = (await db.readJson("lessons")) || [];
-    const users: Array<{ id: string; email?: string }> = (await db.readJson("users")) || [];
+    const users: Array<{ id: string; email?: string }> =
+      (await db.readJson("users")) || [];
 
     let rolesToAdd: {
       ratio: number;
@@ -75,7 +76,7 @@ async function removeRole(memberId: string, roleId: string) {
         if (!sheetData || sheetData.length === 0) continue;
         const rolesToPush = sheetData
           .map((row: any) => {
-            const user = users.find(u => u.email === row.email);
+            const user = users.find((u) => u.email === row.email);
             if (user) {
               return {
                 ratio: row.ratio as number,
@@ -88,13 +89,15 @@ async function removeRole(memberId: string, roleId: string) {
             return null;
           })
           .filter(
-            (u): u is {
+            (
+              u,
+            ): u is {
               ratio: number;
               role: string;
               lesson: string;
               userId: string;
               lessonIndex: number;
-            } => !!u
+            } => !!u,
           );
         rolesToAdd = [...rolesToAdd, ...rolesToPush];
       } catch (error) {
@@ -110,7 +113,7 @@ async function removeRole(memberId: string, roleId: string) {
       if (!seen.has(key) || seen.get(key)! < entry.ratio) {
         seen.set(key, entry.ratio);
         const existingIndex = uniqueRolesToAdd.findIndex(
-          e => e.userId === entry.userId && e.role === entry.role
+          (e) => e.userId === entry.userId && e.role === entry.role,
         );
         if (existingIndex !== -1) {
           uniqueRolesToAdd[existingIndex] = entry;
@@ -135,7 +138,7 @@ async function removeRole(memberId: string, roleId: string) {
     };
 
     for (const entry of uniqueRolesToAdd) {
-      const member = members.find(m => m.user.id === entry.userId);
+      const member = members.find((m) => m.user.id === entry.userId);
       if (!member) {
         console.warn(`Member with ID ${entry.userId} not found`);
         continue;
@@ -148,20 +151,26 @@ async function removeRole(memberId: string, roleId: string) {
           try {
             await addRole(entry.userId, entry.role);
             if (CHAT_CHANNEL_ID) {
-              await fetch(`https://discord.com/api/v10/channels/${CHAT_CHANNEL_ID}/messages`, {
-                method: "POST",
-                headers: {
-                  Authorization: `Bot ${BOT_TOKEN}`,
-                  "Content-Type": "application/json",
+              await fetch(
+                `https://discord.com/api/v10/channels/${CHAT_CHANNEL_ID}/messages`,
+                {
+                  method: "POST",
+                  headers: {
+                    Authorization: `Bot ${BOT_TOKEN}`,
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({
+                    content: `🎉 Congratulations <@${entry.userId}> for completing the graduation ${entry.lesson} and earning the role <@&${entry.role}>!`,
+                    allowed_mentions: { users: [], roles: [] },
+                  }),
                 },
-                body: JSON.stringify({
-                  content: `🎉 Congratulations <@${entry.userId}> for completing the graduation ${entry.lesson} and earning the role <@&${entry.role}>!`,
-                  allowed_mentions: { users: [], roles: [] },
-                }),
-              });
+              );
             }
           } catch (error) {
-            console.error(`Failed to add role ${entry.role} to ${entry.userId}:`, error);
+            console.error(
+              `Failed to add role ${entry.role} to ${entry.userId}:`,
+              error,
+            );
           }
         }
       } else {
@@ -169,10 +178,15 @@ async function removeRole(memberId: string, roleId: string) {
           try {
             await removeRole(entry.userId, entry.role);
             if (!hasPrerequisites) {
-              console.log(`Removed role ${entry.role} from ${entry.userId} - missing prerequisites`);
+              console.log(
+                `Removed role ${entry.role} from ${entry.userId} - missing prerequisites`,
+              );
             }
           } catch (error) {
-            console.error(`Failed to remove role ${entry.role} from ${entry.userId}:`, error);
+            console.error(
+              `Failed to remove role ${entry.role} from ${entry.userId}:`,
+              error,
+            );
           }
         }
       }

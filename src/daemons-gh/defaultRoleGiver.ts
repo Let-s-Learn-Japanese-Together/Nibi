@@ -1,7 +1,7 @@
 import { config } from "../config";
 
 import dotenv from "dotenv";
-dotenv.config({path: process.cwd() + '/.env'});
+dotenv.config({ path: process.cwd() + "/.env" });
 
 const BOT_TOKEN = process.env.BOT_TOKEN || config.discord.token;
 const GUILD_ID = process.env.GUILD_ID || config.discord.guildId;
@@ -41,8 +41,10 @@ async function addRole(memberId: string, roleId: string) {
 (async () => {
   try {
     const staffLabelRoleId = process.env.STAFF_ROLE_ID || "1427323094737096775";
-    const normalLabelRoleId = process.env.NORMAL_ROLE_ID || "1427323203105325267";
-    const graduationLabelRoleId = process.env.GRAD_ROLE_ID || "1427323151422849096";
+    const normalLabelRoleId =
+      process.env.NORMAL_ROLE_ID || "1427323203105325267";
+    const graduationLabelRoleId =
+      process.env.GRAD_ROLE_ID || "1427323151422849096";
     const botRoleId = process.env.BOT_ROLE_ID || "1427262077025783919";
 
     const members = await fetchAllGuildMembers();
@@ -59,7 +61,11 @@ async function addRole(memberId: string, roleId: string) {
         }
       }
 
-      for (const roleId of [normalLabelRoleId, staffLabelRoleId, graduationLabelRoleId]) {
+      for (const roleId of [
+        normalLabelRoleId,
+        staffLabelRoleId,
+        graduationLabelRoleId,
+      ]) {
         if (!m.roles.includes(roleId)) {
           try {
             await addRole(m.user.id, roleId);

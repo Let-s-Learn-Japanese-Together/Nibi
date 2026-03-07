@@ -2,7 +2,7 @@ import { config } from "../config";
 import { DatabaseUtils } from "../utils/databaseUtils";
 
 import dotenv from "dotenv";
-dotenv.config({path: process.cwd() + '/.env'});
+dotenv.config({ path: process.cwd() + "/.env" });
 
 // The Github Action must set these secrets or env vars
 const BOT_TOKEN = process.env.BOT_TOKEN || config.discord.token;
@@ -28,7 +28,9 @@ async function fetchAllGuildMembers(): Promise<any[]> {
       headers: { Authorization: `Bot ${BOT_TOKEN}` },
     });
     if (!res.ok) {
-      throw new Error(`Failed to fetch members: ${res.status} ${res.statusText}`);
+      throw new Error(
+        `Failed to fetch members: ${res.status} ${res.statusText}`,
+      );
     }
     const data = (await res.json()) as any[];
     members.push(...data);
@@ -61,8 +63,9 @@ async function removeRole(memberId: string, roleId: string) {
     const members = await fetchAllGuildMembers();
 
     for (const m of members) {
-      const userRecord = users.find(u => u.id === m.user.id);
-      const hasRole = Array.isArray(m.roles) && m.roles.includes(VERIFIED_ROLE_ID);
+      const userRecord = users.find((u) => u.id === m.user.id);
+      const hasRole =
+        Array.isArray(m.roles) && m.roles.includes(VERIFIED_ROLE_ID);
       if (userRecord && userRecord.email) {
         if (!hasRole) {
           console.log(`adding verified role to ${m.user.id}`);

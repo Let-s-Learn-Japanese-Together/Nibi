@@ -1,13 +1,13 @@
-import { Command } from '../types/command';
+import { Command } from "../types/command";
 
 const ping: Command = {
   data: {
-    name: 'ping',
-    description: 'Replies with Pong!' 
+    name: "ping",
+    description: "Replies with Pong!",
   },
 
-  execute: async function(_interaction, _env) {
-    return { type: 4, data: { content: 'Pong!' } };
+  execute: async function (_interaction, _env) {
+    return { type: 4, data: { content: "Pong!" } };
   },
 };
 
@@ -15,4 +15,3 @@ const ping: Command = {
 const execute = ping.execute;
 
 export { execute };
-

@@ -4,15 +4,15 @@
 // "browser" field, which Wrangler/esbuild does for Workers builds.
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-if (typeof (globalThis as any).XMLHttpRequest === 'undefined') {
+if (typeof (globalThis as any).XMLHttpRequest === "undefined") {
   class XHR {
     onload: (() => void) | null = null;
     onerror: ((err: any) => void) | null = null;
     status = 0;
-    responseType = '';
+    responseType = "";
     response: any = null;
-    private _method = 'GET';
-    private _url = '';
+    private _method = "GET";
+    private _url = "";
 
     open(method: string, url: string) {
       this._method = method;
@@ -27,10 +27,10 @@ if (typeof (globalThis as any).XMLHttpRequest === 'undefined') {
       fetch(this._url, { method: this._method, body })
         .then(async (res) => {
           this.status = res.status;
-          if (this.responseType === 'arraybuffer') {
+          if (this.responseType === "arraybuffer") {
             return res.arrayBuffer();
           }
-          if (this.responseType === 'blob') {
+          if (this.responseType === "blob") {
             return res.blob();
           }
           return res.text();
