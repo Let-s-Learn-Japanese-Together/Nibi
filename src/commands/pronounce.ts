@@ -175,8 +175,6 @@ async function getHiraganaForTTS(text: string): Promise<string> {
 
 async function generateGoogleTTS(text: string): Promise<Buffer | null> {
   try {
-    console.log(`Generating Google TTS for text: "${text}"`);
-
     const url = await googleTTS(text, "ja", 1);
 
     const response = await fetch(url);
@@ -186,9 +184,6 @@ async function generateGoogleTTS(text: string): Promise<Buffer | null> {
 
     const arrayBuffer = await response.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
-    console.log(
-      `Google TTS audio downloaded, buffer size: ${buffer.length} bytes`,
-    );
     return buffer;
   } catch (error) {
     console.error("Google TTS generation error:", error);
@@ -198,13 +193,9 @@ async function generateGoogleTTS(text: string): Promise<Buffer | null> {
 
 async function generateTTS(text: string): Promise<Buffer | null> {
   try {
-    console.log(`Generating TTS for text: "${text}"`);
-
     const formData = new URLSearchParams();
     formData.append("text", text.replace(" ", ""));
     formData.append("speaker", "3");
-
-    console.log("Sending form data with text:", text);
 
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 10000);
@@ -223,42 +214,32 @@ async function generateTTS(text: string): Promise<Buffer | null> {
       clearTimeout(timeout);
     }
 
-    console.log(`TTS API response status: ${response.status}`);
-
     if (!response.ok) {
       const errorText = await response.text();
       console.error("VOICEVOX API error response:", errorText);
-      console.log("VOICEVOX failed, falling back to Google TTS...");
       return await generateGoogleTTS(text);
     }
 
     const data = (await response.json()) as VoiceVoxResponse;
-    console.log("TTS API response data:", data);
 
     if (!data.success) {
-      console.log("VOICEVOX synthesis failed, falling back to Google TTS...");
       return await generateGoogleTTS(text);
     }
 
     const statusUrl = data.audioStatusUrl;
     const mp3Url = data.mp3DownloadUrl;
 
-    console.log(`Status URL: ${statusUrl}`);
-    console.log(`MP3 URL: ${mp3Url}`);
-
     let isReady = false;
     let attempts = 0;
     const maxAttempts = 30;
 
     while (!isReady && attempts < maxAttempts) {
-      console.log(`Checking status, attempt ${attempts + 1}/${maxAttempts}`);
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       const statusResponse = await fetch(statusUrl);
       if (statusResponse.ok) {
         const statusData =
           (await statusResponse.json()) as VoiceVoxStatusResponse;
-        console.log("Status data:", statusData);
         isReady = statusData.isAudioReady;
       } else {
         console.error(`Status check failed: ${statusResponse.status}`);
@@ -268,29 +249,19 @@ async function generateTTS(text: string): Promise<Buffer | null> {
     }
 
     if (!isReady) {
-      console.log("VOICEVOX synthesis timeout, falling back to Google TTS...");
       return await generateGoogleTTS(text);
     }
 
-    console.log("Audio is ready, downloading...");
-
     const audioResponse = await fetch(mp3Url);
     if (!audioResponse.ok) {
-      console.log(
-        "VOICEVOX audio download failed, falling back to Google TTS...",
-      );
       return await generateGoogleTTS(text);
     }
 
     const arrayBuffer = await audioResponse.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
-    console.log(
-      `VOICEVOX audio downloaded, buffer size: ${buffer.length} bytes`,
-    );
     return buffer;
   } catch (error) {
     console.error("VOICEVOX TTS generation error:", error);
-    console.log("VOICEVOX completely failed, falling back to Google TTS...");
     return await generateGoogleTTS(text);
   }
 }
@@ -428,7 +399,6 @@ const pronounce: Command = {
       (opt: any) => opt.name === "text",
     );
     const text = (textOption?.value as string) || "";
-    console.log(`Processing pronunciation request for: "${text}"`);
 
     try {
       const cleanText = text
@@ -437,13 +407,10 @@ const pronounce: Command = {
           /[^\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF\u3400-\u4DBFa-zA-Z0-9\s]/g,
           "",
         );
-      console.log(`Cleaned text: "${cleanText}"`);
 
       const hiraganaText = await getHiraganaForTTS(cleanText);
-      console.log(`Hiragana text: "${hiraganaText}"`);
 
       const limitedText = hiraganaText.substring(0, 100);
-      console.log(`Limited text: "${limitedText}"`);
 
       const audioBuffer = await generateTTS(limitedText);
 
@@ -452,8 +419,6 @@ const pronounce: Command = {
           audioBuffer.subarray(0, 3).toString("hex") === "494433" ||
           audioBuffer.subarray(0, 2).toString("hex") === "fff3" ||
           audioBuffer.subarray(0, 2).toString("hex") === "fffb";
-
-        console.log(`Audio format detected: ${isMP3 ? "MP3" : "OGG"}`);
 
         const uploadFilename = await uploadToDiscord(
           audioBuffer,

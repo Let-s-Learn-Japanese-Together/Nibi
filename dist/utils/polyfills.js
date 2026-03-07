@@ -4,16 +4,16 @@
 // dictionary loader relies on XHR when the package is bundled using the
 // "browser" field, which Wrangler/esbuild does for Workers builds.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-if (typeof globalThis.XMLHttpRequest === 'undefined') {
+if (typeof globalThis.XMLHttpRequest === "undefined") {
     class XHR {
         constructor() {
             this.onload = null;
             this.onerror = null;
             this.status = 0;
-            this.responseType = '';
+            this.responseType = "";
             this.response = null;
-            this._method = 'GET';
-            this._url = '';
+            this._method = "GET";
+            this._url = "";
         }
         open(method, url) {
             this._method = method;
@@ -26,10 +26,10 @@ if (typeof globalThis.XMLHttpRequest === 'undefined') {
             fetch(this._url, { method: this._method, body })
                 .then(async (res) => {
                 this.status = res.status;
-                if (this.responseType === 'arraybuffer') {
+                if (this.responseType === "arraybuffer") {
                     return res.arrayBuffer();
                 }
-                if (this.responseType === 'blob') {
+                if (this.responseType === "blob") {
                     return res.blob();
                 }
                 return res.text();

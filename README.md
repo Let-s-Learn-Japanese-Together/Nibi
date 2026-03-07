@@ -12,7 +12,6 @@ La logique est déployée en tant que _Cloudflare Worker_ via **Wrangler**, et l
 - Un compte Discord et une application/bot configurée
 - (optionnel) Un projet Supabase si vous souhaitez utiliser un stockage de données gratuit
 
-
 ## 📁 Structure du projet
 
 ```
@@ -96,10 +95,10 @@ Note : `PUBLIC_KEY` est la clé publique de l'application Discord utilisée pou
 > `new row violates row-level security policy for table "kv"`. Le helper
 > affiche désormais un message d'avertissement si l'erreur survient.
 
-
 ### 🔐 Variables d'environnement
 
-- **Wrangler secrets** (recommandé pour la production) : 
+- **Wrangler secrets** (recommandé pour la production) :
+
   ```bash
   wrangler secret put PUBLIC_KEY
   wrangler secret put BOT_TOKEN
@@ -130,8 +129,10 @@ Le code qui s’exécute dans Cloudflare est défini dans `src/command-handlers.
 // exemple extrait de command-handlers.ts
 export const commandHandlers = {
   hello: async (interaction) => {
-    const user = interaction.data.options?.find(o=>o.name==='user')?.value;
-    return { type: 4, data: { content: `Salut ${user||'anon'}` } };
+    const user = interaction.data.options?.find(
+      (o) => o.name === "user",
+    )?.value;
+    return { type: 4, data: { content: `Salut ${user || "anon"}` } };
   },
   // ...
 };
@@ -152,7 +153,7 @@ Une fois la commande `dev` lancée, vous aurez une URL temporaire (ou `http://lo
 
 Assurez-vous de copier l'URL fournie et de la mettre comme **URL de callback** dans la section "Interactions Endpoint" de votre application Discord.
 
-> ⚠️ *Discord validera l'endpoint à chaque demande en envoyant un PING.*
+> ⚠️ _Discord validera l'endpoint à chaque demande en envoyant un PING._
 
 ---
 
@@ -173,8 +174,8 @@ Le fichier `src/index.ts` illustre la vérification de signature, la réponse au
 
 ```ts
 switch (name) {
-  case 'hello':
-    return c.json({ type: 4, data: { content: 'Bonjour !' } });
+  case "hello":
+    return c.json({ type: 4, data: { content: "Bonjour !" } });
   // ...
 }
 ```
@@ -185,14 +186,14 @@ Ajoutez aussi des appels à Supabase via `supabase` si vous avez besoin de stoc
 
 ## 🤖 Tâches périodiques via GitHub Actions
 
-Le code de l'ancien bot contenait plusieurs *daemons* qui tournaient en continu à l'aide de `discord.js` : gestion du rôle "verified", attribution de rôles de base et vérification des graduations sur Google Sheets.
-Dans la nouvelle version nous pouvons extraire cette logique dans des *actions GitHub* qui s'exécutent sur un horaire et communiquent avec l'API Discord via `fetch` (le package `discord.js` n'est pas nécessaire). Les scripts TypeScript sont placés dans `src/daemons-gh` et trois workflows sont fournis :
+Le code de l'ancien bot contenait plusieurs _daemons_ qui tournaient en continu à l'aide de `discord.js` : gestion du rôle "verified", attribution de rôles de base et vérification des graduations sur Google Sheets.
+Dans la nouvelle version nous pouvons extraire cette logique dans des _actions GitHub_ qui s'exécutent sur un horaire et communiquent avec l'API Discord via `fetch` (le package `discord.js` n'est pas nécessaire). Les scripts TypeScript sont placés dans `src/daemons-gh` et trois workflows sont fournis :
 
-| Workflow | Fichier | Cron par défaut |
-|----------|---------|----------------|
-| manage_verified_role | `.github/workflows/manage_verified_role.yml` | toutes les 5 min |
-| verify_graduations | `.github/workflows/verify_graduations.yml` | toutes les 15 min |
-| default_role_giver | `.github/workflows/default_role_giver.yml` | chaque heure |
+| Workflow             | Fichier                                      | Cron par défaut   |
+| -------------------- | -------------------------------------------- | ----------------- |
+| manage_verified_role | `.github/workflows/manage_verified_role.yml` | toutes les 5 min  |
+| verify_graduations   | `.github/workflows/verify_graduations.yml`   | toutes les 15 min |
+| default_role_giver   | `.github/workflows/default_role_giver.yml`   | chaque heure      |
 
 ### Configuration requise
 
@@ -204,8 +205,7 @@ Dans la nouvelle version nous pouvons extraire cette logique dans des *actions G
 
 2. Les workflows font un `pnpm install` puis utilisent `ts-node` pour lancer les scripts.
 
-3. Vous pouvez déclencher manuellement chaque action depuis l'onglet *Actions* de GitHub (`workflow_dispatch`).
-
+3. Vous pouvez déclencher manuellement chaque action depuis l'onglet _Actions_ de GitHub (`workflow_dispatch`).
 
 ## 📌 Notes
 

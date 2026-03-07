@@ -129,7 +129,6 @@ export const sendEmail = async (
 
     // Verify connection configuration
     await transporter.verify();
-    console.log("SMTP server is ready to take our messages");
 
     const mailOptions = {
       from: env.EMAIL_FROM as string,
@@ -143,7 +142,6 @@ export const sendEmail = async (
     };
 
     const info = await transporter.sendMail(mailOptions);
-    console.log("Email sent successfully:", info.messageId);
   } catch (error) {
     console.error("Failed to send email:", error);
     throw new Error(

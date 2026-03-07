@@ -42,57 +42,57 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const dotenv_1 = __importDefault(require("dotenv"));
 const promises_1 = require("fs/promises");
 const path_1 = __importDefault(require("path"));
-dotenv_1.default.config({ path: process.cwd() + '/.env' });
+dotenv_1.default.config({ path: process.cwd() + "/.env" });
 const APPLICATION_ID = process.env.APP_ID;
 const BOT_TOKEN = process.env.BOT_TOKEN;
 // helper that loads each command module from the commands folder and returns
 // an array of the raw JSON payloads (ready to POST to Discord).
 async function loadCommands() {
-    const commandsDir = path_1.default.join(__dirname, 'commands');
+    const commandsDir = path_1.default.join(__dirname, "commands");
     const entries = await (0, promises_1.readdir)(commandsDir);
     const commandData = [];
     for (const entry of entries) {
-        if (!entry.endsWith('.ts') && !entry.endsWith('.js'))
+        if (!entry.endsWith(".ts") && !entry.endsWith(".js"))
             continue;
         const modPath = path_1.default.join(commandsDir, entry);
         // dynamic import allows ts-node to compile if running .ts
         const commandModule = await Promise.resolve(`${modPath}`).then(s => __importStar(require(s)));
         const command = commandModule.default;
-        if (command && command.data && typeof command.data.toJSON === 'function') {
+        if (command && command.data && typeof command.data.toJSON === "function") {
             commandData.push(command.data.toJSON());
         }
         else {
-            console.warn('Skipping invalid command file', entry);
+            console.warn("Skipping invalid command file", entry);
         }
     }
     return commandData;
 }
 async function register() {
     if (!APPLICATION_ID || !BOT_TOKEN) {
-        console.error('APP_ID and BOT_TOKEN must be set');
+        console.error("APP_ID and BOT_TOKEN must be set");
         process.exit(1);
     }
     const url = `https://discord.com/api/v10/applications/${APPLICATION_ID}/commands`;
     const commands = await loadCommands();
     if (commands.length === 0) {
-        console.warn('No commands found in src/commands');
+        console.warn("No commands found in src/commands");
         return;
     }
     for (const command of commands) {
         const res = await fetch(url, {
-            method: 'POST',
+            method: "POST",
             headers: {
-                'Authorization': `Bot ${BOT_TOKEN}`,
-                'Content-Type': 'application/json',
+                Authorization: `Bot ${BOT_TOKEN}`,
+                "Content-Type": "application/json",
             },
             body: JSON.stringify(command),
         });
         if (!res.ok) {
             const text = await res.text();
-            console.error('Failed to register', command.name, res.status, text);
+            console.error("Failed to register", command.name, res.status, text);
         }
         else {
-            console.log('Registered command', command.name);
+            // registration succeeded
         }
     }
 }

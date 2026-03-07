@@ -7,7 +7,7 @@ const config_1 = require("../config");
 const databaseUtils_1 = require("../utils/databaseUtils");
 const fetchGoogleSheet_1 = __importDefault(require("../utils/fetchGoogleSheet"));
 const dotenv_1 = __importDefault(require("dotenv"));
-dotenv_1.default.config({ path: process.cwd() + '/.env' });
+dotenv_1.default.config({ path: process.cwd() + "/.env" });
 const BOT_TOKEN = process.env.BOT_TOKEN || config_1.config.discord.token;
 const GUILD_ID = process.env.GUILD_ID || config_1.config.discord.guildId;
 const CHAT_CHANNEL_ID = process.env.CHAT_CHANNEL_ID || "1427338649372201000";
@@ -70,7 +70,7 @@ async function removeRole(memberId, roleId) {
                     continue;
                 const rolesToPush = sheetData
                     .map((row) => {
-                    const user = users.find(u => u.email === row.email);
+                    const user = users.find((u) => u.email === row.email);
                     if (user) {
                         return {
                             ratio: row.ratio,
@@ -96,7 +96,7 @@ async function removeRole(memberId, roleId) {
             const key = `${entry.userId}-${entry.role}`;
             if (!seen.has(key) || seen.get(key) < entry.ratio) {
                 seen.set(key, entry.ratio);
-                const existingIndex = uniqueRolesToAdd.findIndex(e => e.userId === entry.userId && e.role === entry.role);
+                const existingIndex = uniqueRolesToAdd.findIndex((e) => e.userId === entry.userId && e.role === entry.role);
                 if (existingIndex !== -1) {
                     uniqueRolesToAdd[existingIndex] = entry;
                 }
@@ -120,7 +120,7 @@ async function removeRole(memberId, roleId) {
             return true;
         };
         for (const entry of uniqueRolesToAdd) {
-            const member = members.find(m => m.user.id === entry.userId);
+            const member = members.find((m) => m.user.id === entry.userId);
             if (!member) {
                 console.warn(`Member with ID ${entry.userId} not found`);
                 continue;
@@ -154,7 +154,7 @@ async function removeRole(memberId, roleId) {
                     try {
                         await removeRole(entry.userId, entry.role);
                         if (!hasPrerequisites) {
-                            console.log(`Removed role ${entry.role} from ${entry.userId} - missing prerequisites`);
+                            // prerequisites missing, nothing to log
                         }
                     }
                     catch (error) {

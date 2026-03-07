@@ -53,11 +53,10 @@ const emojiManagement: Command = {
   },
 
   async execute(interaction, env) {
-    console.log("Executing emoji-management command...");
     const subcommand = interaction.data.options?.find(
       (o: any) => o.type === 1,
     )?.name;
-    console.log(`Subcommand: ${subcommand}`);
+
     const guild = interaction.guild_id;
     if (!guild) {
       return { type: 4, data: { content: "Guild not found." } };
@@ -74,7 +73,6 @@ const emojiManagement: Command = {
       },
     );
     const emojis = await response.json();
-    console.log(`Fetched ${emojis.length} emojis from guild ${guild}`);
 
     if (subcommand === "list") {
       const publicEmojis: string[] = [];

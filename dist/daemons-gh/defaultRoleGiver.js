@@ -5,7 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const config_1 = require("../config");
 const dotenv_1 = __importDefault(require("dotenv"));
-dotenv_1.default.config({ path: process.cwd() + '/.env' });
+dotenv_1.default.config({ path: process.cwd() + "/.env" });
 const BOT_TOKEN = process.env.BOT_TOKEN || config_1.config.discord.token;
 const GUILD_ID = process.env.GUILD_ID || config_1.config.discord.guildId;
 if (!BOT_TOKEN)
@@ -53,18 +53,20 @@ async function addRole(memberId, roleId) {
                 if (!m.roles.includes(botRoleId)) {
                     try {
                         await addRole(m.user.id, botRoleId);
-                        console.log(`Added bot role to ${m.user.id}`);
                     }
                     catch (error) {
                         console.error(`Failed to add bot role to ${m.user.id}`, error);
                     }
                 }
             }
-            for (const roleId of [normalLabelRoleId, staffLabelRoleId, graduationLabelRoleId]) {
+            for (const roleId of [
+                normalLabelRoleId,
+                staffLabelRoleId,
+                graduationLabelRoleId,
+            ]) {
                 if (!m.roles.includes(roleId)) {
                     try {
                         await addRole(m.user.id, roleId);
-                        console.log(`Added ${roleId} to ${m.user.id}`);
                     }
                     catch (error) {
                         console.error(`Failed to add ${roleId} to ${m.user.id}`, error);

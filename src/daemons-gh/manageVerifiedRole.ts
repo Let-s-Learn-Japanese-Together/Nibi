@@ -68,12 +68,10 @@ async function removeRole(memberId: string, roleId: string) {
         Array.isArray(m.roles) && m.roles.includes(VERIFIED_ROLE_ID);
       if (userRecord && userRecord.email) {
         if (!hasRole) {
-          console.log(`adding verified role to ${m.user.id}`);
           await addRole(m.user.id, VERIFIED_ROLE_ID).catch(console.error);
         }
       } else {
         if (hasRole) {
-          console.log(`removing verified role from ${m.user.id}`);
           await removeRole(m.user.id, VERIFIED_ROLE_ID).catch(console.error);
         }
       }

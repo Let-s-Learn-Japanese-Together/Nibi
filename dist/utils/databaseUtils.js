@@ -4,26 +4,22 @@ exports.DatabaseUtils = void 0;
 const supabase_js_1 = require("@supabase/supabase-js");
 class DatabaseUtils {
     constructor(config) {
-        console.log('Supabase config', {
-            SUPABASE_URL: config.SUPABASE_URL ? '[present]' : '[missing]',
-            SUPABASE_ANON_KEY: config.SUPABASE_ANON_KEY ? '[present]' : '[missing]',
-        });
         if (config.SUPABASE_URL && config.SUPABASE_ANON_KEY) {
             this.supabase = (0, supabase_js_1.createClient)(config.SUPABASE_URL, config.SUPABASE_ANON_KEY);
         }
     }
     async supabaseRead(key) {
         if (!this.supabase)
-            throw new Error('Supabase client not initialized');
+            throw new Error("Supabase client not initialized");
         try {
             const { data, error } = await this.supabase
-                .from('kv')
-                .select('value')
-                .eq('key', key)
+                .from("kv")
+                .select("value")
+                .eq("key", key)
                 .single();
             if (error) {
                 // 116 = no rows, 117 = no data
-                if (error.code === 'PGRST116' || error.code === 'PGRST117') {
+                if (error.code === "PGRST116" || error.code === "PGRST117") {
                     return null;
                 }
                 throw error;
@@ -33,8 +29,8 @@ class DatabaseUtils {
         catch (err) {
             // Supabase throws a generic Error if the table doesn't exist
             if (err.message && err.message.includes("Could not find the table")) {
-                console.warn('Supabase table `kv` not found; returning null.\n' +
-                    'Make sure you have created the table with `key text primary key, value jsonb`.');
+                console.warn("Supabase table `kv` not found; returning null.\n" +
+                    "Make sure you have created the table with `key text primary key, value jsonb`.");
                 return null;
             }
             throw err;
@@ -42,8 +38,8 @@ class DatabaseUtils {
     }
     async supabaseWrite(key, value) {
         if (!this.supabase)
-            throw new Error('Supabase client not initialized');
-        const { error } = await this.supabase.from('kv').upsert({ key, value });
+            throw new Error("Supabase client not initialized");
+        const { error } = await this.supabase.from("kv").upsert({ key, value });
         if (error)
             throw error;
     }
@@ -57,7 +53,7 @@ class DatabaseUtils {
         }
         catch (err) {
             if (err.message &&
-                err.message.includes('violates row-level security policy')) {
+                err.message.includes("violates row-level security policy")) {
                 console.warn("Supabase write failed due to row-level security. " +
                     "Ensure you have disabled RLS on the `kv` table or added a " +
                     "policy allowing the anon (or service role) key to INSERT/UPDATE. " +

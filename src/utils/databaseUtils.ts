@@ -9,11 +9,6 @@ export class DatabaseUtils {
   private supabase: SupabaseClient | undefined;
 
   constructor(config: SupabaseConfig) {
-    console.log("Supabase config", {
-      SUPABASE_URL: config.SUPABASE_URL ? "[present]" : "[missing]",
-      SUPABASE_ANON_KEY: config.SUPABASE_ANON_KEY ? "[present]" : "[missing]",
-    });
-
     if (config.SUPABASE_URL && config.SUPABASE_ANON_KEY) {
       this.supabase = createClient(
         config.SUPABASE_URL,

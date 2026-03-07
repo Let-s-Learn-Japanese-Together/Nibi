@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const info = {
-    data: { name: 'info', description: 'Get bot information', type: 1 },
+    data: { name: "info", description: "Get bot information", type: 1 },
     async execute(interaction, env) {
         // const client = interaction.client;
         // // Calculate system statistics
@@ -52,7 +52,12 @@ const info = {
         //   ) || []);
         // await interaction.editReply({ embeds: [updatedEmbed] });
         //WIP command
-        return { type: 4, data: { content: 'This command is still a work in progress. Stay tuned for updates!' } };
+        return {
+            type: 4,
+            data: {
+                content: "This command is still a work in progress. Stay tuned for updates!",
+            },
+        };
     },
 };
 function formatUptime(uptime) {

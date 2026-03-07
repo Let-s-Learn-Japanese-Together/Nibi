@@ -30,10 +30,6 @@ const hello: Command = {
   },
 
   async execute(interaction, env) {
-    // const targetUser = interaction.options.getUser('user') || interaction.user;
-    // const style = interaction.options.getString('style') || 'random';
-
-    // const targetUser = interaction.member.user.global_name || interaction.member.user.username;
     const targetUser =
       interaction.data.options?.find((o: any) => o.name === "user")?.value ||
       interaction.member.user.global_name ||
@@ -59,7 +55,6 @@ const hello: Command = {
       );
     } else {
       const userData = await userResponse.json();
-      // console.log('Fetched user data:', userData);
 
       if (!interaction.data.options) {
         return {
@@ -100,7 +95,6 @@ const hello: Command = {
           greetings[style as keyof typeof greetings] || greetings.afternoon;
       }
 
-      // await interaction.reply(greeting);
       return { type: 4, data: { content: greeting } };
     }
     return { type: 4, data: { content: `Hello, ${targetUser}!` } };

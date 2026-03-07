@@ -31,11 +31,6 @@ app.post("/api/interactions", async (c) => {
     if (!signature) console.warn("Missing signature");
     if (!timestamp) console.warn("Missing timestamp");
     if (!PUBLIC_KEY) console.warn("Missing public key");
-    // console.log('Request headers:', {
-    //     signature: signature ? '[present]' : '[missing]',
-    //     timestamp: timestamp ? '[present]' : '[missing]',
-    //     PUBLIC_KEY: PUBLIC_KEY ? '[present]' : '[missing]'
-    // });
     return c.text("invalid request headers", 400);
   }
 
@@ -85,7 +80,6 @@ app.post("/api/interactions", async (c) => {
 
   // Modal submit - just acknowledge for now
   if (interaction.type === 5) {
-    console.log("Received modal submit interaction");
     if (interaction.data.custom_id.startsWith("verify_code_modal:")) {
       const email = interaction.data.custom_id.split(":")[1];
       const code = interaction.data.components[0].components[0].value;
@@ -98,7 +92,7 @@ app.post("/api/interactions", async (c) => {
           id: string;
           email?: string;
         }>;
-        // console.log('Existing users in database:', users);
+
         const userIndex = users && users.findIndex((u) => u.email === email);
         if (!userIndex || userIndex === -1) {
           if (users == null) {

@@ -178,9 +178,7 @@ async function removeRole(memberId: string, roleId: string) {
           try {
             await removeRole(entry.userId, entry.role);
             if (!hasPrerequisites) {
-              console.log(
-                `Removed role ${entry.role} from ${entry.userId} - missing prerequisites`,
-              );
+              // prerequisites missing, nothing to log
             }
           } catch (error) {
             console.error(

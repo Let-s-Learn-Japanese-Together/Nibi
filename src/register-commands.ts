@@ -61,7 +61,7 @@ async function register() {
       const text = await res.text();
       console.error("Failed to register", command.name, res.status, text);
     } else {
-      console.log("Registered command", command.name);
+      // registration succeeded
     }
   }
 }

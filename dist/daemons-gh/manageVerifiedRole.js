@@ -6,7 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const config_1 = require("../config");
 const databaseUtils_1 = require("../utils/databaseUtils");
 const dotenv_1 = __importDefault(require("dotenv"));
-dotenv_1.default.config({ path: process.cwd() + '/.env' });
+dotenv_1.default.config({ path: process.cwd() + "/.env" });
 // The Github Action must set these secrets or env vars
 const BOT_TOKEN = process.env.BOT_TOKEN || config_1.config.discord.token;
 const GUILD_ID = process.env.GUILD_ID || config_1.config.discord.guildId;
@@ -60,17 +60,15 @@ async function removeRole(memberId, roleId) {
         const users = (await db.readJson("users")) || [];
         const members = await fetchAllGuildMembers();
         for (const m of members) {
-            const userRecord = users.find(u => u.id === m.user.id);
+            const userRecord = users.find((u) => u.id === m.user.id);
             const hasRole = Array.isArray(m.roles) && m.roles.includes(VERIFIED_ROLE_ID);
             if (userRecord && userRecord.email) {
                 if (!hasRole) {
-                    console.log(`adding verified role to ${m.user.id}`);
                     await addRole(m.user.id, VERIFIED_ROLE_ID).catch(console.error);
                 }
             }
             else {
                 if (hasRole) {
-                    console.log(`removing verified role from ${m.user.id}`);
                     await removeRole(m.user.id, VERIFIED_ROLE_ID).catch(console.error);
                 }
             }

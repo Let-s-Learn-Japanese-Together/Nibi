@@ -54,7 +54,6 @@ async function addRole(memberId: string, roleId: string) {
         if (!m.roles.includes(botRoleId)) {
           try {
             await addRole(m.user.id, botRoleId);
-            console.log(`Added bot role to ${m.user.id}`);
           } catch (error) {
             console.error(`Failed to add bot role to ${m.user.id}`, error);
           }
@@ -69,7 +68,6 @@ async function addRole(memberId: string, roleId: string) {
         if (!m.roles.includes(roleId)) {
           try {
             await addRole(m.user.id, roleId);
-            console.log(`Added ${roleId} to ${m.user.id}`);
           } catch (error) {
             console.error(`Failed to add ${roleId} to ${m.user.id}`, error);
           }

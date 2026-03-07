@@ -50,33 +50,28 @@ const listServerEmojis_1 = __importDefault(require("./commands/listServerEmojis"
 const pronounce_1 = __importDefault(require("./commands/pronounce"));
 const sendVerificationCode_1 = __importStar(require("./commands/sendVerificationCode"));
 const app = new hono_1.Hono();
-app.post('/api/interactions', async (c) => {
-    const signature = c.req.header('x-signature-ed25519');
-    const timestamp = c.req.header('x-signature-timestamp');
+app.post("/api/interactions", async (c) => {
+    const signature = c.req.header("x-signature-ed25519");
+    const timestamp = c.req.header("x-signature-timestamp");
     const body = await c.req.text();
     if (!c.env)
-        return c.text('Environment variables not found', 500);
+        return c.text("Environment variables not found", 500);
     const PUBLIC_KEY = c.env.PUBLIC_KEY;
     if (!signature || !timestamp || !PUBLIC_KEY) {
-        console.warn('Missing signature, timestamp, or public key');
+        console.warn("Missing signature, timestamp, or public key");
         if (!signature)
-            console.warn('Missing signature');
+            console.warn("Missing signature");
         if (!timestamp)
-            console.warn('Missing timestamp');
+            console.warn("Missing timestamp");
         if (!PUBLIC_KEY)
-            console.warn('Missing public key');
-        // console.log('Request headers:', {
-        //     signature: signature ? '[present]' : '[missing]',
-        //     timestamp: timestamp ? '[present]' : '[missing]',
-        //     PUBLIC_KEY: PUBLIC_KEY ? '[present]' : '[missing]'
-        // });
-        return c.text('invalid request headers', 400);
+            console.warn("Missing public key");
+        return c.text("invalid request headers", 400);
     }
     const isValid = (0, discord_interactions_1.verifyKey)(body, signature, timestamp, PUBLIC_KEY);
     if (!isValid) {
-        console.warn('Invalid request signature');
-        console.warn('Request body:', body);
-        return c.text('invalid request signature', 401);
+        console.warn("Invalid request signature");
+        console.warn("Request body:", body);
+        return c.text("invalid request signature", 401);
     }
     const interaction = JSON.parse(body);
     // Discord PING - respond with PONG
@@ -87,47 +82,45 @@ app.post('/api/interactions', async (c) => {
     if (interaction.type === 2) {
         const name = interaction.data.name;
         switch (name) {
-            case 'ping': {
-                return c.json({ type: 4, data: { content: 'Pong!' } });
+            case "ping": {
+                return c.json({ type: 4, data: { content: "Pong!" } });
             }
-            case 'emoji-management':
+            case "emoji-management":
                 return c.json(await emojiManagment_1.default.execute(interaction, c.env));
-            case 'list-server-emojis':
+            case "list-server-emojis":
                 return c.json(await listServerEmojis_1.default.execute(interaction, c.env));
-            case 'hello':
+            case "hello":
                 return c.json(await hello_1.default.execute(interaction, c.env));
-            case 'dictionary':
+            case "dictionary":
                 return c.json(await dictionnary_1.default.execute(interaction, c.env));
-            case 'pronounce':
+            case "pronounce":
                 return c.json(await pronounce_1.default.execute(interaction, c.env));
-            case 'send-verification-code': {
+            case "send-verification-code": {
                 return c.json(await sendVerificationCode_1.default.execute(interaction, c.env));
             }
             default:
-                console.warn('Unknown command received:', name);
+                console.warn("Unknown command received:", name);
                 return c.json({
                     type: 4,
-                    data: { content: `Unknown command: ${name}` }
+                    data: { content: `Unknown command: ${name}` },
                 });
         }
     }
     // Modal submit - just acknowledge for now
     if (interaction.type === 5) {
-        console.log('Received modal submit interaction');
-        if (interaction.data.custom_id.startsWith('verify_code_modal:')) {
-            const email = interaction.data.custom_id.split(':')[1];
+        if (interaction.data.custom_id.startsWith("verify_code_modal:")) {
+            const email = interaction.data.custom_id.split(":")[1];
             const code = interaction.data.components[0].components[0].value;
             if (code == (0, sendVerificationCode_1.seededCode)(email + c.env.EMAIL_HASH).toString()) {
                 const DatabaseUtilsInstance = new databaseUtils_1.DatabaseUtils({
-                    SUPABASE_URL: c.env.SUPABASE_URL || '',
-                    SUPABASE_ANON_KEY: c.env.SUPABASE_ANON_KEY || '',
+                    SUPABASE_URL: c.env.SUPABASE_URL || "",
+                    SUPABASE_ANON_KEY: c.env.SUPABASE_ANON_KEY || "",
                 });
-                let users = await DatabaseUtilsInstance.readJson('users');
-                // console.log('Existing users in database:', users);
-                const userIndex = users && users.findIndex(u => u.email === email);
+                let users = (await DatabaseUtilsInstance.readJson("users"));
+                const userIndex = users && users.findIndex((u) => u.email === email);
                 if (!userIndex || userIndex === -1) {
                     if (users == null) {
-                        console.warn('No users found in database, initializing with empty array');
+                        console.warn("No users found in database, initializing with empty array");
                         users = [];
                     }
                     users.push({ id: interaction.member.user.id, email }); // Add new user record
@@ -135,10 +128,13 @@ app.post('/api/interactions', async (c) => {
                 else {
                     users[userIndex].email = email; // Mark user as verified by setting their email
                 }
-                await DatabaseUtilsInstance.writeJson('users', users);
+                await DatabaseUtilsInstance.writeJson("users", users);
                 return c.json({
                     type: 4,
-                    data: { content: 'Verification successful! You can now use the bot features.', flags: 64 }
+                    data: {
+                        content: "Verification successful! You can now use the bot features.",
+                        flags: 64,
+                    },
                 });
             }
             else {
@@ -149,6 +145,6 @@ app.post('/api/interactions', async (c) => {
             }
         }
     }
-    return c.text('ok');
+    return c.text("ok");
 });
 exports.default = app;

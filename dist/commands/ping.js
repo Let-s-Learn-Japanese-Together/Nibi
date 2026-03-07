@@ -3,11 +3,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.execute = void 0;
 const ping = {
     data: {
-        name: 'ping',
-        description: 'Replies with Pong!'
+        name: "ping",
+        description: "Replies with Pong!",
     },
     execute: async function (_interaction, _env) {
-        return { type: 4, data: { content: 'Pong!' } };
+        return { type: 4, data: { content: "Pong!" } };
     },
 };
 // const data = ping.data.toJSON();

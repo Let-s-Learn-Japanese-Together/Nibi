@@ -82,21 +82,21 @@ const createTransporter = (env) => {
     const transportConfig = {
         host: env.EMAIL_HOST,
         port: env.EMAIL_PORT,
-        secure: env.EMAIL_SECURE === 'true', // true for 465, false for other ports
+        secure: env.EMAIL_SECURE === "true", // true for 465, false for other ports
         auth: {
             user: env.EMAIL_USER,
             pass: env.EMAIL_PASSWORD,
         },
     };
     // enable debugging/logging in development
-    if (env.ENVIRONMENT === 'development') {
+    if (env.ENVIRONMENT === "development") {
         transportConfig.debug = true;
         transportConfig.logger = true;
     }
     // if the caller really wants to ignore invalid TLS certificates they can
     // set EMAIL_TLS_INSECURE="true" in their env.  We don't apply this by
     // default because the option isn't supported everywhere.
-    if (env.EMAIL_TLS_INSECURE === 'true') {
+    if (env.EMAIL_TLS_INSECURE === "true") {
         transportConfig.tls = {
             rejectUnauthorized: false,
         };
@@ -108,23 +108,21 @@ const sendEmail = async (options, env) => {
         const transporter = createTransporter(env);
         // Verify connection configuration
         await transporter.verify();
-        console.log('SMTP server is ready to take our messages');
         const mailOptions = {
             from: env.EMAIL_FROM,
-            to: Array.isArray(options.to) ? options.to.join(', ') : options.to,
+            to: Array.isArray(options.to) ? options.to.join(", ") : options.to,
             subject: options.subject,
             text: options.text,
             html: options.html,
-            cc: Array.isArray(options.cc) ? options.cc.join(', ') : options.cc,
-            bcc: Array.isArray(options.bcc) ? options.bcc.join(', ') : options.bcc,
+            cc: Array.isArray(options.cc) ? options.cc.join(", ") : options.cc,
+            bcc: Array.isArray(options.bcc) ? options.bcc.join(", ") : options.bcc,
             attachments: options.attachments,
         };
         const info = await transporter.sendMail(mailOptions);
-        console.log('Email sent successfully:', info.messageId);
     }
     catch (error) {
-        console.error('Failed to send email:', error);
-        throw new Error(`Failed to send email: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        console.error("Failed to send email:", error);
+        throw new Error(`Failed to send email: ${error instanceof Error ? error.message : "Unknown error"}`);
     }
 };
 exports.sendEmail = sendEmail;
@@ -168,11 +166,13 @@ const sendTemplateEmail = async (to, subject, templateName, templateData = {}, e
         // module to wherever `mails/` lives in the source tree.  When
         // wrangler/esbuild bundles the worker the file is included as a
         // static asset and `fetch` works at runtime.
-        if (templateName === 'verificationCode') {
+        if (templateName === "verificationCode") {
             // If the template is the verification code, use the hardcoded template string
             const html = verificationEmail.replace(/<%=\s*([\w\.]+)\s*%>/g, (_, key) => {
-                const value = key.split('.').reduce((o, k) => (o ? o[k] : ''), templateData);
-                return value == null ? '' : String(value);
+                const value = key
+                    .split(".")
+                    .reduce((o, k) => (o ? o[k] : ""), templateData);
+                return value == null ? "" : String(value);
             });
             return (0, exports.sendEmail)({
                 to,
@@ -185,8 +185,8 @@ const sendTemplateEmail = async (to, subject, templateName, templateData = {}, e
         }
     }
     catch (error) {
-        console.error('Failed to render template or send email:', error);
-        throw new Error(`Failed to send template email: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        console.error("Failed to render template or send email:", error);
+        throw new Error(`Failed to send template email: ${error instanceof Error ? error.message : "Unknown error"}`);
     }
 };
 exports.sendTemplateEmail = sendTemplateEmail;

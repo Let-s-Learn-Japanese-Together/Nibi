@@ -41,14 +41,8 @@ async function detectAndTranslate(
     return translationCache.get(cacheKey);
   }
 
-  console.log(
-    `Translating word: "${word}" to ${targetLang} with allowed source languages: ${allowedSourceLangs?.join(", ") || "none"}`,
-  );
-
   try {
     const result = await translate(word, { to: targetLang });
-
-    console.log(result);
 
     // Si on a des langues autorisées et que la langue détectée n'est pas dedans
     if (
