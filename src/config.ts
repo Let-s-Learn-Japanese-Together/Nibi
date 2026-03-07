@@ -1,6 +1,8 @@
 import dotenv from "dotenv";
 dotenv.config({path: process.cwd() + '/.env'});
 
+console.log('Loaded environment variables:', process.env);
+
 export const config = {
   discord: {
     token: process.env.BOT_TOKEN as string,
