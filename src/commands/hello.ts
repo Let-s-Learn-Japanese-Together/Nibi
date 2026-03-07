@@ -31,7 +31,7 @@ const hello: Command = {
 
   async execute(interaction, env) {
     const targetUser =
-      interaction.data.options?.find((o: any) => o.name === "user")?.value ||
+      interaction.data.options?.find((o: Record<string, unknown>) => o.name === "user")?.value ||
       interaction.member.user.global_name ||
       interaction.member.user.username;
 
@@ -64,7 +64,7 @@ const hello: Command = {
       }
 
       const style =
-        interaction.data.options.find((o: any) => o.name === "style")?.value ||
+        interaction.data.options.find((o: Record<string, unknown>) => o.name === "style")?.value ||
         "random";
 
       const greetings = {

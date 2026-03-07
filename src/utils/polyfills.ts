@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 // Minimal XMLHttpRequest polyfill for environments like Cloudflare Workers
 // where `fetch` is available but `XMLHttpRequest` is not.  Kuromoji's browser
 // dictionary loader relies on XHR when the package is bundled using the
@@ -7,10 +8,10 @@
 if (typeof (globalThis as any).XMLHttpRequest === "undefined") {
   class XHR {
     onload: (() => void) | null = null;
-    onerror: ((err: any) => void) | null = null;
+    onerror: ((err: unknown) => void) | null = null;
     status = 0;
     responseType = "";
-    response: any = null;
+    response: unknown = null;
     private _method = "GET";
     private _url = "";
 
@@ -23,7 +24,7 @@ if (typeof (globalThis as any).XMLHttpRequest === "undefined") {
       // no-op; headers are not needed for dictionary downloads
     }
 
-    send(body?: any) {
+    send(body?: string | FormData | Blob | ArrayBuffer | URLSearchParams) {
       fetch(this._url, { method: this._method, body })
         .then(async (res) => {
           this.status = res.status;

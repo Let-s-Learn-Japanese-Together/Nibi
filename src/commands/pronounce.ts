@@ -24,7 +24,7 @@ interface DiscordAttachmentResponse {
   }>;
 }
 
-let kuroshiro: any = null;
+let kuroshiro: Kuroshiro | null = null;
 
 // To work inside Cloudflare Workers we cannot rely on filesystem access for the
 // kuromoji dictionary.  When the project is bundled the `browser` field in
@@ -46,7 +46,7 @@ async function initKuroshiro() {
     // pass the CDN location so that the browser loader knows where to fetch the
     // dictionary archives from.  The trailing slash is required.
     await kuroshiro.init(
-      new KuromojiAnalyzer({ dictPath: KUROMOJI_DICT_URL } as any),
+      new KuromojiAnalyzer({ dictPath: KUROMOJI_DICT_URL } as {dictPath: string}),
     );
   }
   return kuroshiro;
@@ -396,7 +396,7 @@ const pronounce: Command = {
     env: Bindings,
   ): Promise<InteractionResponse> {
     const textOption = interaction.data?.options?.find(
-      (opt: any) => opt.name === "text",
+      (opt: Record<string, unknown>) => opt.name === "text",
     );
     const text = (textOption?.value as string) || "";
 

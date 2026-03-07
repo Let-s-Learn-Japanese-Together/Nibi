@@ -42,7 +42,7 @@ export default async function fetchGoogleSheet(id: string) {
     const cleanedRow: Record<string, string | number> = {};
     for (const key in row) {
       const cleanedKey = key.replace(/"/g, "").toLowerCase();
-      let cleanedValue = row[key] ? row[key].replace(/"/g, "") : "";
+      const cleanedValue = row[key] ? row[key].replace(/"/g, "") : "";
       if (cleanedKey.indexOf("mail") !== -1) {
         cleanedRow["email"] = cleanedValue;
       } else if (cleanedKey === "score") {

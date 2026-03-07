@@ -4,7 +4,7 @@ import { InteractionResponse } from "../types/InteractionResponse";
 const info: Command = {
   data: { name: "info", description: "Get bot information", type: 1 },
 
-  async execute(interaction, env): Promise<InteractionResponse> {
+  async execute(): Promise<InteractionResponse> {
     // const client = interaction.client;
 
     // // Calculate system statistics
@@ -76,24 +76,6 @@ const info: Command = {
   },
 };
 
-function formatUptime(uptime: number): string {
-  const seconds = Math.floor(uptime / 1000);
-  const minutes = Math.floor(seconds / 60);
-  const hours = Math.floor(minutes / 60);
-  const days = Math.floor(hours / 24);
 
-  if (days > 0) return `${days}d ${hours % 24}h ${minutes % 60}m`;
-  if (hours > 0) return `${hours}h ${minutes % 60}m ${seconds % 60}s`;
-  if (minutes > 0) return `${minutes}m ${seconds % 60}s`;
-  return `${seconds}s`;
-}
-
-function formatMemory(bytes: number): string {
-  const mb = bytes / 1024 / 1024;
-  if (mb >= 1024) {
-    return `${(mb / 1024).toFixed(1)}GB`;
-  }
-  return `${mb.toFixed(1)}MB`;
-}
 
 export default info;

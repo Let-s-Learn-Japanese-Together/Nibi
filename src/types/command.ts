@@ -10,5 +10,10 @@ export interface CommandExecute {
 }
 
 export interface Command extends CommandExecute {
-  data: any;
+  data: {
+    name: string;
+    description: string;
+    type?: number;
+    options?: unknown[];
+  };
 }

@@ -1,4 +1,5 @@
 import { config } from "../config";
+import { Lesson } from "../types/lesson";
 import { DatabaseUtils } from "../utils/databaseUtils";
 import fetchGoogleSheet from "../utils/fetchGoogleSheet";
 
@@ -17,8 +18,13 @@ const db = new DatabaseUtils({
   SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY || "",
 });
 
-async function fetchAllGuildMembers(): Promise<any[]> {
-  const members: any[] = [];
+interface GuildMember {
+  user: { id: string; bot?: boolean };
+  roles: string[];
+}
+
+async function fetchAllGuildMembers(): Promise<GuildMember[]> {
+  const members: GuildMember[] = [];
   let after: string | undefined;
   while (true) {
     const params = new URLSearchParams({ limit: "1000" });
@@ -30,7 +36,7 @@ async function fetchAllGuildMembers(): Promise<any[]> {
     if (!res.ok) {
       throw new Error(`Failed to fetch members: ${res.status}`);
     }
-    const data = (await res.json()) as any[];
+    const data = (await res.json()) as GuildMember[];
     members.push(...data);
     if (data.length < 1000) break;
     after = data[data.length - 1].user.id;
@@ -56,7 +62,7 @@ async function removeRole(memberId: string, roleId: string) {
 
 (async () => {
   try {
-    const lessons: any[] = (await db.readJson("lessons")) || [];
+    const lessons: Lesson[] = (await db.readJson("lessons")) || [];
     const users: Array<{ id: string; email?: string }> =
       (await db.readJson("users")) || [];
 
@@ -75,7 +81,7 @@ async function removeRole(memberId: string, roleId: string) {
         const sheetData = await fetchGoogleSheet(lesson.id);
         if (!sheetData || sheetData.length === 0) continue;
         const rolesToPush = sheetData
-          .map((row: any) => {
+          .map((row: Record<string, string | number>) => {
             const user = users.find((u) => u.email === row.email);
             if (user) {
               return {
@@ -125,7 +131,7 @@ async function removeRole(memberId: string, roleId: string) {
 
     const members = await fetchAllGuildMembers();
 
-    const hasAllPreviousRoles = (member: any, lessonIndex: number) => {
+    const hasAllPreviousRoles = (member: GuildMember, lessonIndex: number) => {
       if (lessonIndex === 0) return true;
       for (let i = 0; i < lessonIndex; i++) {
         const previousLesson = lessons[i];

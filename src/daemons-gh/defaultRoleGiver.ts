@@ -9,8 +9,13 @@ const GUILD_ID = process.env.GUILD_ID || config.discord.guildId;
 if (!BOT_TOKEN) throw new Error("BOT_TOKEN env var is required");
 if (!GUILD_ID) throw new Error("GUILD_ID env var is required");
 
-async function fetchAllGuildMembers(): Promise<any[]> {
-  const members: any[] = [];
+interface GuildMember {
+  user: { id: string; bot?: boolean };
+  roles: string[];
+}
+
+async function fetchAllGuildMembers(): Promise<GuildMember[]> {
+  const members: GuildMember[] = [];
   let after: string | undefined;
   while (true) {
     const params = new URLSearchParams({ limit: "1000" });
@@ -22,7 +27,7 @@ async function fetchAllGuildMembers(): Promise<any[]> {
     if (!res.ok) {
       throw new Error(`Failed to fetch members: ${res.status}`);
     }
-    const data = (await res.json()) as any[];
+    const data = (await res.json()) as GuildMember[];
     members.push(...data);
     if (data.length < 1000) break;
     after = data[data.length - 1].user.id;

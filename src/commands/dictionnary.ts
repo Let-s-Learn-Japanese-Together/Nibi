@@ -8,10 +8,15 @@ import { Command } from "../types/command";
 import { Interaction } from "./../types/Interaction";
 
 // Cache pour éviter trop d'appels API
-const translationCache = new Map<string, any>();
+const translationCache = new Map<string, {
+  original: string,
+  translated: string,
+  detectedLang: string,
+  confidence: number
+}>();
 
 // Instance de Kuroshiro pour la conversion des kanjis
-let kuroshiro: any = null;
+let kuroshiro: Kuroshiro | null = null;
 
 // Initialiser Kuroshiro
 // See comments in pronounce.ts: we point at a CDN dictionary and provide an
@@ -24,7 +29,7 @@ async function initKuroshiro() {
   if (!kuroshiro) {
     kuroshiro = new Kuroshiro();
     await kuroshiro.init(
-      new KuromojiAnalyzer({ dictPath: KUROMOJI_DICT_URL } as any),
+      new KuromojiAnalyzer({ dictPath: KUROMOJI_DICT_URL } as { dictPath: string }),
     );
   }
   return kuroshiro;
@@ -244,7 +249,7 @@ async function getKanaForms(
     const katakana = await kuro.convert(text, { to: "katakana" });
 
     return { hiragana, katakana };
-  } catch (error) {
+  } catch {
     // console.error('Kuroshiro conversion error:', error);
 
     // Fallback sur l'ancienne méthode si Kuroshiro échoue
@@ -608,13 +613,13 @@ const dictionary_cmd: Command = {
     let word = "";
     if (subcommand === "to-japanese") {
       word =
-        ((subcommandOption.options as any)?.find(
-          (opt: { name: string }) => opt.name === "word",
+        ((subcommandOption.options as Record<string, unknown>[])?.find(
+          (opt: Record<string, unknown>) => opt.name === "word",
         )?.value as string) || "";
     } else if (subcommand === "from-japanese") {
       word =
-        ((subcommandOption.options as any)?.find(
-          (opt: { name: string }) => opt.name === "word",
+        ((subcommandOption.options as Record<string, unknown>[])?.find(
+          (opt: Record<string, unknown>) => opt.name === "word",
         )?.value as string) || "";
     }
 
@@ -704,12 +709,12 @@ const dictionary_cmd: Command = {
           },
         };
       } else if (subcommand === "from-japanese") {
-        const wordOption = (subcommandOption.options as any)?.find(
-          (opt: { name: string }) => opt.name === "word",
+        const wordOption = (subcommandOption.options as Record<string, unknown>[])?.find(
+          (opt: Record<string, unknown>) => opt.name === "word",
         );
         const word = (wordOption?.value as string) || "";
-        const targetOption = (subcommandOption.options as any)?.find(
-          (opt: { name: string }) => opt.name === "target",
+        const targetOption = (subcommandOption.options as Record<string, unknown>[])?.find(
+          (opt: Record<string, unknown>) => opt.name === "target",
         );
         const target = (targetOption?.value as string) || "";
 
@@ -736,11 +741,11 @@ const dictionary_cmd: Command = {
         }
 
         const targetFlag = getLanguageFlag(target);
-        const hiraganaFromRomaji = isRomaji(word)
-          ? romajiToHiragana(word)
-          : word;
-        const kanaForms = await getKanaForms(hiraganaFromRomaji);
-        const romaji = toRomaji(kanaForms.hiragana);
+        // const hiraganaFromRomaji = isRomaji(word)
+        //   ? romajiToHiragana(word)
+        //   : word;
+        // const kanaForms = await getKanaForms(hiraganaFromRomaji);
+        // const romaji = toRomaji(kanaForms.hiragana);
 
         return {
           type: 4,

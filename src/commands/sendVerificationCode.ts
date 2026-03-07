@@ -1,6 +1,5 @@
 import { Command } from "../types/command";
 import { InteractionResponse } from "../types/InteractionResponse";
-import { DatabaseUtils } from "../utils/databaseUtils";
 import { sendTemplateEmail } from "../utils/sendEmail";
 
 export function seededCode(email: string): number {
@@ -27,10 +26,6 @@ const sendVerificationCode: Command = {
   },
 
   async execute(interaction, env) {
-    const DatabaseUtilsInstance = new DatabaseUtils({
-      SUPABASE_URL: env["SUPABASE_URL"] as string,
-      SUPABASE_ANON_KEY: env["SUPABASE_ANON_KEY"] as string,
-    });
 
     if (!interaction.data.options) {
       return {
@@ -39,7 +34,7 @@ const sendVerificationCode: Command = {
       } as InteractionResponse;
     }
     const emailOption = interaction.data.options.find(
-      (o: any) => o.name === "email",
+      (o: Record<string, unknown>) => o.name === "email",
     );
     const email = emailOption?.value as string;
 

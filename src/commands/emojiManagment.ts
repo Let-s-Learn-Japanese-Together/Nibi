@@ -54,7 +54,7 @@ const emojiManagement: Command = {
 
   async execute(interaction, env) {
     const subcommand = interaction.data.options?.find(
-      (o: any) => o.type === 1,
+      (o: Record<string, unknown>) => o.type === 1,
     )?.name;
 
     const guild = interaction.guild_id;
@@ -77,16 +77,16 @@ const emojiManagement: Command = {
     if (subcommand === "list") {
       const publicEmojis: string[] = [];
       const roleGroups: Map<string, string[]> = new Map();
-      emojis.forEach((emoji: any) => {
+      emojis.forEach((emoji: { name: string; id: string; roles: string[] }) => {
         const emojiDisplay = `${emoji}`;
         if (!emoji.roles || emoji.roles.length === 0) {
           publicEmojis.push(emojiDisplay);
         } else {
-          emoji.roles.forEach((role: any) => {
-            if (!roleGroups.has(role.id)) {
-              roleGroups.set(role.id, []);
+          emoji.roles.forEach((role: string) => {
+            if (!roleGroups.has(role)) {
+              roleGroups.set(role, []);
             }
-            roleGroups.get(role.id)!.push(emojiDisplay);
+            roleGroups.get(role)!.push(emojiDisplay);
           });
         }
       });
@@ -141,7 +141,7 @@ const emojiManagement: Command = {
       if (subcommand === "lock") {
         try {
           const emojiInputOption = interaction.data.options?.find(
-            (o: any) => o.name === "emoji",
+            (o: Record<string, unknown>) => o.name === "emoji",
           );
           if (!emojiInputOption || typeof emojiInputOption.value !== "string") {
             return {
@@ -162,7 +162,7 @@ const emojiManagement: Command = {
           }
           const emojiId = emojiMatch[1] as string;
           const role = interaction.data.options?.find(
-            (o: any) => o.name === "role" && o.type === 8,
+            (o: Record<string, unknown>) => o.name === "role" && o.type === 8
           );
           if (!role) {
             return { type: 4, data: { content: "Role option is required." } };
@@ -202,7 +202,7 @@ const emojiManagement: Command = {
       if (subcommand === "unlock") {
         try {
           const emojiInputOption = interaction.data.options?.find(
-            (o: any) => o.name === "emoji",
+            (o: Record<string, unknown>) => o.name === "emoji",
           );
           if (!emojiInputOption || typeof emojiInputOption.value !== "string") {
             return {
@@ -223,7 +223,7 @@ const emojiManagement: Command = {
           }
           const emojiId = emojiMatch[1] as string;
           const role = interaction.data.options?.find(
-            (o: any) => o.name === "role" && o.type === 8,
+            (o: Record<string, unknown>) => o.name === "role" && o.type === 8
           );
 
           const rolesArray = role ? [role.value] : [];

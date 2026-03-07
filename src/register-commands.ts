@@ -5,6 +5,7 @@
 import dotenv from "dotenv";
 import { readdir } from "fs/promises";
 import path from "path";
+import { Command } from "./types/command";
 dotenv.config({ path: process.cwd() + "/.env" });
 
 const APPLICATION_ID = process.env.APP_ID as string;
@@ -15,7 +16,7 @@ const BOT_TOKEN = process.env.BOT_TOKEN as string;
 async function loadCommands() {
   const commandsDir = path.join(__dirname, "commands");
   const entries = await readdir(commandsDir);
-  const commandData: any[] = [];
+  const commandData: Command[] = [];
 
   for (const entry of entries) {
     if (!entry.endsWith(".ts") && !entry.endsWith(".js")) continue;
@@ -59,7 +60,7 @@ async function register() {
 
     if (!res.ok) {
       const text = await res.text();
-      console.error("Failed to register", command.name, res.status, text);
+      console.error("Failed to register", command.data.name, res.status, text);
     } else {
       // registration succeeded
     }

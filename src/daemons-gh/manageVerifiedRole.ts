@@ -16,9 +16,12 @@ const db = new DatabaseUtils({
   SUPABASE_URL: process.env.SUPABASE_URL || "",
   SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY || "",
 });
-
-async function fetchAllGuildMembers(): Promise<any[]> {
-  const members: any[] = [];
+interface GuildMember {
+  user: { id: string; bot?: boolean };
+  roles: string[];
+}
+async function fetchAllGuildMembers(): Promise<GuildMember[]> {
+  const members: GuildMember[] = [];
   let after: string | undefined;
   while (true) {
     const params = new URLSearchParams({ limit: "1000" });
@@ -32,7 +35,7 @@ async function fetchAllGuildMembers(): Promise<any[]> {
         `Failed to fetch members: ${res.status} ${res.statusText}`,
       );
     }
-    const data = (await res.json()) as any[];
+    const data = (await res.json()) as GuildMember[];
     members.push(...data);
     if (data.length < 1000) break;
     after = data[data.length - 1].user.id;

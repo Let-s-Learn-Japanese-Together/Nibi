@@ -34,7 +34,7 @@ const listServerEmojis: Command = {
     const publicEmojis: string[] = [];
     const roleGroups: Map<string, string[]> = new Map();
 
-    emojis.forEach((emoji: any) => {
+    emojis.forEach((emoji: { name: string; id: string; roles: string[] }) => {
       const emojiDisplay = `<:${emoji.name}:${emoji.id}>`;
 
       if (!emoji.roles || emoji.roles.length === 0) {

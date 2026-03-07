@@ -1,5 +1,6 @@
 import { Bindings } from "hono/types";
 import nodemailer from "nodemailer";
+import { NodeMailerConfig } from "../types/NodeMailerConfig";
 
 export interface EmailOptions {
   to: string | string[];
@@ -92,7 +93,7 @@ const createTransporter = (env: Bindings) => {
   // option is mainly useful when dealing with self-signed certificates, so
   // rather than hard‑coding it we only include it when explicitly required
   // via an environment variable.
-  const transportConfig: any = {
+  const transportConfig: NodeMailerConfig = {
     host: env.EMAIL_HOST as string,
     port: env.EMAIL_PORT as number,
     secure: env.EMAIL_SECURE === "true", // true for 465, false for other ports
@@ -141,11 +142,11 @@ export const sendEmail = async (
       attachments: options.attachments,
     };
 
-    const info = await transporter.sendMail(mailOptions);
+    await transporter.sendMail(mailOptions);
   } catch (error) {
     console.error("Failed to send email:", error);
     throw new Error(
-      `Failed to send email: ${error instanceof Error ? error.message : "Unknown error"}`,
+      `Failed to send email: ${error instanceof Error ? error.message : "Unknown error"}`, { cause: error },
     );
   }
 };
@@ -219,7 +220,7 @@ export const sendTemplateEmail = async (
   to: string | string[],
   subject: string,
   templateName: string,
-  templateData: Record<string, any> = {},
+  templateData: Record<string, unknown> = {},
   env: Bindings,
 ): Promise<void> => {
   try {
@@ -230,12 +231,12 @@ export const sendTemplateEmail = async (
     if (templateName === "verificationCode") {
       // If the template is the verification code, use the hardcoded template string
       const html = verificationEmail.replace(
-        /<%=\s*([\w\.]+)\s*%>/g,
+        /<%=\s*([\w.]+)\s*%>/g,
         (_, key) => {
           const value = key
             .split(".")
             .reduce(
-              (o: { [x: string]: any }, k: string | number) => (o ? o[k] : ""),
+              (o: { [x: string]: unknown }, k: string | number) => (o ? o[k] : ""),
               templateData,
             );
           return value == null ? "" : String(value);
@@ -255,7 +256,7 @@ export const sendTemplateEmail = async (
   } catch (error) {
     console.error("Failed to render template or send email:", error);
     throw new Error(
-      `Failed to send template email: ${error instanceof Error ? error.message : "Unknown error"}`,
+      `Failed to send template email: ${error instanceof Error ? error.message : "Unknown error"}`, { cause: error },
     );
   }
 };
