@@ -36,7 +36,10 @@ export class DatabaseUtils {
       return data?.value ?? null;
     } catch (err: Error | unknown) {
       // Supabase throws a generic Error if the table doesn't exist
-      if (err instanceof Error && err.message.includes("Could not find the table")) {
+      if (
+        err instanceof Error &&
+        err.message.includes("Could not find the table")
+      ) {
         console.warn(
           "Supabase table `kv` not found; returning null.\n" +
             "Make sure you have created the table with `key text primary key, value jsonb`.",

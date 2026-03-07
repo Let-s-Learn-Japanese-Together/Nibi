@@ -26,7 +26,6 @@ const sendVerificationCode: Command = {
   },
 
   async execute(interaction, env) {
-
     if (!interaction.data.options) {
       return {
         type: 4,

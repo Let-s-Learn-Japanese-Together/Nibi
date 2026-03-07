@@ -8,12 +8,15 @@ import { Command } from "../types/command";
 import { Interaction } from "./../types/Interaction";
 
 // Cache pour éviter trop d'appels API
-const translationCache = new Map<string, {
-  original: string,
-  translated: string,
-  detectedLang: string,
-  confidence: number
-}>();
+const translationCache = new Map<
+  string,
+  {
+    original: string;
+    translated: string;
+    detectedLang: string;
+    confidence: number;
+  }
+>();
 
 // Instance de Kuroshiro pour la conversion des kanjis
 let kuroshiro: Kuroshiro | null = null;
@@ -29,7 +32,9 @@ async function initKuroshiro() {
   if (!kuroshiro) {
     kuroshiro = new Kuroshiro();
     await kuroshiro.init(
-      new KuromojiAnalyzer({ dictPath: KUROMOJI_DICT_URL } as { dictPath: string }),
+      new KuromojiAnalyzer({ dictPath: KUROMOJI_DICT_URL } as {
+        dictPath: string;
+      }),
     );
   }
   return kuroshiro;
@@ -709,13 +714,13 @@ const dictionary_cmd: Command = {
           },
         };
       } else if (subcommand === "from-japanese") {
-        const wordOption = (subcommandOption.options as Record<string, unknown>[])?.find(
-          (opt: Record<string, unknown>) => opt.name === "word",
-        );
+        const wordOption = (
+          subcommandOption.options as Record<string, unknown>[]
+        )?.find((opt: Record<string, unknown>) => opt.name === "word");
         const word = (wordOption?.value as string) || "";
-        const targetOption = (subcommandOption.options as Record<string, unknown>[])?.find(
-          (opt: Record<string, unknown>) => opt.name === "target",
-        );
+        const targetOption = (
+          subcommandOption.options as Record<string, unknown>[]
+        )?.find((opt: Record<string, unknown>) => opt.name === "target");
         const target = (targetOption?.value as string) || "";
 
         const preparedWord = await prepareJapaneseForTranslation(word);

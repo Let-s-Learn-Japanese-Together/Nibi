@@ -46,7 +46,9 @@ async function initKuroshiro() {
     // pass the CDN location so that the browser loader knows where to fetch the
     // dictionary archives from.  The trailing slash is required.
     await kuroshiro.init(
-      new KuromojiAnalyzer({ dictPath: KUROMOJI_DICT_URL } as {dictPath: string}),
+      new KuromojiAnalyzer({ dictPath: KUROMOJI_DICT_URL } as {
+        dictPath: string;
+      }),
     );
   }
   return kuroshiro;

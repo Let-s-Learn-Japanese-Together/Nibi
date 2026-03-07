@@ -76,6 +76,4 @@ const info: Command = {
   },
 };
 
-
-
 export default info;

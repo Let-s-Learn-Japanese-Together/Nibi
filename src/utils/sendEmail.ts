@@ -146,7 +146,8 @@ export const sendEmail = async (
   } catch (error) {
     console.error("Failed to send email:", error);
     throw new Error(
-      `Failed to send email: ${error instanceof Error ? error.message : "Unknown error"}`, { cause: error },
+      `Failed to send email: ${error instanceof Error ? error.message : "Unknown error"}`,
+      { cause: error },
     );
   }
 };
@@ -236,7 +237,8 @@ export const sendTemplateEmail = async (
           const value = key
             .split(".")
             .reduce(
-              (o: { [x: string]: unknown }, k: string | number) => (o ? o[k] : ""),
+              (o: { [x: string]: unknown }, k: string | number) =>
+                o ? o[k] : "",
               templateData,
             );
           return value == null ? "" : String(value);
@@ -256,7 +258,8 @@ export const sendTemplateEmail = async (
   } catch (error) {
     console.error("Failed to render template or send email:", error);
     throw new Error(
-      `Failed to send template email: ${error instanceof Error ? error.message : "Unknown error"}`, { cause: error },
+      `Failed to send template email: ${error instanceof Error ? error.message : "Unknown error"}`,
+      { cause: error },
     );
   }
 };

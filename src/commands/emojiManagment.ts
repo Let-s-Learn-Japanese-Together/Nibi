@@ -162,7 +162,7 @@ const emojiManagement: Command = {
           }
           const emojiId = emojiMatch[1] as string;
           const role = interaction.data.options?.find(
-            (o: Record<string, unknown>) => o.name === "role" && o.type === 8
+            (o: Record<string, unknown>) => o.name === "role" && o.type === 8,
           );
           if (!role) {
             return { type: 4, data: { content: "Role option is required." } };
@@ -223,7 +223,7 @@ const emojiManagement: Command = {
           }
           const emojiId = emojiMatch[1] as string;
           const role = interaction.data.options?.find(
-            (o: Record<string, unknown>) => o.name === "role" && o.type === 8
+            (o: Record<string, unknown>) => o.name === "role" && o.type === 8,
           );
 
           const rolesArray = role ? [role.value] : [];
