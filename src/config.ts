@@ -4,7 +4,7 @@ dotenv.config({path: process.cwd() + '/.env'});
 export const config = {
   discord: {
     token: process.env.BOT_TOKEN as string,
-    clientId: process.env.APP_ID as string,
+    clientId: process.env.APP_ID as string || "1343500351575425065",
     guildId: process.env.GUILD_ID as string || '1427259865121820716',
   },
   email: {
