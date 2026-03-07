@@ -1,8 +1,13 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
 // ensure XHR polyfill is loaded for kuromoji's browser loader
-import '../utils/polyfills';
-import translate from 'google-translate-api-x';
-import Kuroshiro from 'kuroshiro';
-import KuromojiAnalyzer from 'kuroshiro-analyzer-kuromoji';
+require("../utils/polyfills");
+const google_translate_api_x_1 = __importDefault(require("google-translate-api-x"));
+const kuroshiro_1 = __importDefault(require("kuroshiro"));
+const kuroshiro_analyzer_kuromoji_1 = __importDefault(require("kuroshiro-analyzer-kuromoji"));
 // Cache pour éviter trop d'appels API
 const translationCache = new Map();
 // Instance de Kuroshiro pour la conversion des kanjis
@@ -15,8 +20,8 @@ let kuroshiro = null;
 const KUROMOJI_DICT_URL = 'https://cdn.jsdelivr.net/npm/kuromoji@0.1.2/dict/';
 async function initKuroshiro() {
     if (!kuroshiro) {
-        kuroshiro = new Kuroshiro();
-        await kuroshiro.init(new KuromojiAnalyzer({ dictPath: KUROMOJI_DICT_URL }));
+        kuroshiro = new kuroshiro_1.default();
+        await kuroshiro.init(new kuroshiro_analyzer_kuromoji_1.default({ dictPath: KUROMOJI_DICT_URL }));
     }
     return kuroshiro;
 }
@@ -27,7 +32,7 @@ async function detectAndTranslate(word, targetLang = 'ja', allowedSourceLangs) {
     }
     console.log(`Translating word: "${word}" to ${targetLang} with allowed source languages: ${allowedSourceLangs?.join(', ') || 'none'}`);
     try {
-        const result = await translate(word, { to: targetLang });
+        const result = await (0, google_translate_api_x_1.default)(word, { to: targetLang });
         console.log(result);
         // Si on a des langues autorisées et que la langue détectée n'est pas dedans
         if (allowedSourceLangs && !allowedSourceLangs.includes(result.from.language.iso)) {
@@ -358,4 +363,4 @@ const dictionary_cmd = {
         return { type: 4, data: { content: 'Invalid subcommand.' } };
     }
 };
-export default dictionary_cmd;
+exports.default = dictionary_cmd;

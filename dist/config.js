@@ -1,11 +1,17 @@
-import dotenv from 'dotenv';
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.config = void 0;
+const dotenv_1 = __importDefault(require("dotenv"));
 // Load environment variables
-dotenv.config();
-export const config = {
+dotenv_1.default.config();
+exports.config = {
     discord: {
-        token: process.env.DISCORD_TOKEN,
-        clientId: process.env.DISCORD_CLIENT_ID,
-        guildId: process.env.DISCORD_GUILD_ID,
+        token: process.env.BOT_TOKEN,
+        clientId: process.env.APP_ID,
+        guildId: process.env.GUILD_ID || '1427259865121820716',
     },
     email: {
         host: process.env.EMAIL_HOST || 'ssl0.ovh.net',
@@ -19,18 +25,18 @@ export const config = {
     environment: process.env.NODE_ENV || 'development',
 };
 // Validate required environment variables
-if (!config.discord.token) {
-    throw new Error('DISCORD_TOKEN is required');
+if (!exports.config.discord.token) {
+    throw new Error('BOT_TOKEN is required');
 }
-if (!config.discord.clientId) {
-    throw new Error('DISCORD_CLIENT_ID is required');
+if (!exports.config.discord.clientId) {
+    throw new Error('APP_ID is required');
 }
-if (!config.email.user) {
+if (!exports.config.email.user) {
     throw new Error('EMAIL_USER is required');
 }
-if (!config.email.password) {
+if (!exports.config.email.password) {
     throw new Error('EMAIL_PASSWORD is required');
 }
-if (!config.email.from) {
+if (!exports.config.email.from) {
     throw new Error('EMAIL_FROM is required');
 }

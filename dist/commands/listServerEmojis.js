@@ -1,3 +1,5 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 const listServerEmojis = {
     data: { name: 'list-server-emojis', description: 'List all server emojis grouped by their role restrictions', type: 1 },
     async execute(interaction, env) {
@@ -54,4 +56,4 @@ const listServerEmojis = {
         };
     },
 };
-export default listServerEmojis;
+exports.default = listServerEmojis;

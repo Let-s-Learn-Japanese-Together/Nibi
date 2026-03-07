@@ -2,6 +2,9 @@ import { config } from "../config";
 import { DatabaseUtils } from "../utils/databaseUtils";
 import fetchGoogleSheet from "../utils/fetchGoogleSheet";
 
+import dotenv from "dotenv";
+dotenv.config({path: process.cwd() + '/.env'});
+
 const BOT_TOKEN = process.env.BOT_TOKEN || config.discord.token;
 const GUILD_ID = process.env.GUILD_ID || config.discord.guildId;
 const CHAT_CHANNEL_ID = process.env.CHAT_CHANNEL_ID || "1427338649372201000";

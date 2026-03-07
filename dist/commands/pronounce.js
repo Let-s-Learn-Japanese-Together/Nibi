@@ -1,6 +1,11 @@
-import googleTTS from 'google-tts-api';
-import Kuroshiro from 'kuroshiro';
-import KuromojiAnalyzer from 'kuroshiro-analyzer-kuromoji';
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const google_tts_api_1 = __importDefault(require("google-tts-api"));
+const kuroshiro_1 = __importDefault(require("kuroshiro"));
+const kuroshiro_analyzer_kuromoji_1 = __importDefault(require("kuroshiro-analyzer-kuromoji"));
 let kuroshiro = null;
 // To work inside Cloudflare Workers we cannot rely on filesystem access for the
 // kuromoji dictionary.  When the project is bundled the `browser` field in
@@ -17,10 +22,10 @@ let kuroshiro = null;
 const KUROMOJI_DICT_URL = 'https://cdn.jsdelivr.net/npm/kuromoji@0.1.2/dict/';
 async function initKuroshiro() {
     if (!kuroshiro) {
-        kuroshiro = new Kuroshiro();
+        kuroshiro = new kuroshiro_1.default();
         // pass the CDN location so that the browser loader knows where to fetch the
         // dictionary archives from.  The trailing slash is required.
-        await kuroshiro.init(new KuromojiAnalyzer({ dictPath: KUROMOJI_DICT_URL }));
+        await kuroshiro.init(new kuroshiro_analyzer_kuromoji_1.default({ dictPath: KUROMOJI_DICT_URL }));
     }
     return kuroshiro;
 }
@@ -84,7 +89,7 @@ async function getHiraganaForTTS(text) {
 async function generateGoogleTTS(text) {
     try {
         console.log(`Generating Google TTS for text: "${text}"`);
-        const url = await googleTTS(text, 'ja', 1);
+        const url = await (0, google_tts_api_1.default)(text, 'ja', 1);
         const response = await fetch(url);
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -296,4 +301,4 @@ const pronounce = {
         }
     },
 };
-export default pronounce;
+exports.default = pronounce;

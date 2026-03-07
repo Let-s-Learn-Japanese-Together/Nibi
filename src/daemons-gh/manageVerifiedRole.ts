@@ -1,6 +1,9 @@
 import { config } from "../config";
 import { DatabaseUtils } from "../utils/databaseUtils";
 
+import dotenv from "dotenv";
+dotenv.config({path: process.cwd() + '/.env'});
+
 // The Github Action must set these secrets or env vars
 const BOT_TOKEN = process.env.BOT_TOKEN || config.discord.token;
 const GUILD_ID = process.env.GUILD_ID || config.discord.guildId;

@@ -1,3 +1,5 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 const info = {
     data: { name: 'info', description: 'Get bot information', type: 1 },
     async execute(interaction, env) {
@@ -73,4 +75,4 @@ function formatMemory(bytes) {
     }
     return `${mb.toFixed(1)}MB`;
 }
-export default info;
+exports.default = info;

@@ -1,14 +1,21 @@
-import { config } from "../config";
-import { DatabaseUtils } from "../utils/databaseUtils";
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const config_1 = require("../config");
+const databaseUtils_1 = require("../utils/databaseUtils");
+const dotenv_1 = __importDefault(require("dotenv"));
+dotenv_1.default.config({ path: process.cwd() + '/.env' });
 // The Github Action must set these secrets or env vars
-const BOT_TOKEN = process.env.BOT_TOKEN || config.discord.token;
-const GUILD_ID = process.env.GUILD_ID || config.discord.guildId;
+const BOT_TOKEN = process.env.BOT_TOKEN || config_1.config.discord.token;
+const GUILD_ID = process.env.GUILD_ID || config_1.config.discord.guildId;
 const VERIFIED_ROLE_ID = process.env.VERIFIED_ROLE_ID || "1427262130154901614";
 if (!BOT_TOKEN)
     throw new Error("BOT_TOKEN env var is required");
 if (!GUILD_ID)
     throw new Error("GUILD_ID env var is required");
-const db = new DatabaseUtils({
+const db = new databaseUtils_1.DatabaseUtils({
     SUPABASE_URL: process.env.SUPABASE_URL || "",
     SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY || "",
 });

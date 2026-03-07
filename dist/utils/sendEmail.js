@@ -1,4 +1,10 @@
-import nodemailer from 'nodemailer';
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.sendTemplateEmail = exports.sendEmailWithAttachments = exports.sendHtmlEmail = exports.sendSimpleEmail = exports.sendEmail = void 0;
+const nodemailer_1 = __importDefault(require("nodemailer"));
 const verificationEmail = `
 <!DOCTYPE html>
 <html lang="en">
@@ -95,9 +101,9 @@ const createTransporter = (env) => {
             rejectUnauthorized: false,
         };
     }
-    return nodemailer.createTransport(transportConfig);
+    return nodemailer_1.default.createTransport(transportConfig);
 };
-export const sendEmail = async (options, env) => {
+const sendEmail = async (options, env) => {
     try {
         const transporter = createTransporter(env);
         // Verify connection configuration
@@ -121,38 +127,42 @@ export const sendEmail = async (options, env) => {
         throw new Error(`Failed to send email: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
 };
+exports.sendEmail = sendEmail;
 // Helper function for sending simple text emails
-export const sendSimpleEmail = async (to, subject, message, env) => {
-    return sendEmail({
+const sendSimpleEmail = async (to, subject, message, env) => {
+    return (0, exports.sendEmail)({
         to,
         subject,
         text: message,
     }, env);
 };
+exports.sendSimpleEmail = sendSimpleEmail;
 // Helper function for sending HTML emails
-export const sendHtmlEmail = async (to, subject, html, env, text) => {
-    return sendEmail({
+const sendHtmlEmail = async (to, subject, html, env, text) => {
+    return (0, exports.sendEmail)({
         to,
         subject,
         html,
         text,
     }, env);
 };
+exports.sendHtmlEmail = sendHtmlEmail;
 // Helper function for sending emails with attachments
-export const sendEmailWithAttachments = async (to, subject, message, attachments, env) => {
-    return sendEmail({
+const sendEmailWithAttachments = async (to, subject, message, attachments, env) => {
+    return (0, exports.sendEmail)({
         to,
         subject,
         text: message,
         attachments,
     }, env);
 };
+exports.sendEmailWithAttachments = sendEmailWithAttachments;
 // Helper function for sending emails with lightweight templates.  The
 // templates live in the `mails/` directory and may contain expressions
 // of the form `<%= some.path %>`; only simple property access is
 // supported.  We deliberately avoid any library that compiles a string
 // into code because the Workers runtime forbids that.
-export const sendTemplateEmail = async (to, subject, templateName, templateData = {}, env) => {
+const sendTemplateEmail = async (to, subject, templateName, templateData = {}, env) => {
     try {
         // fetch the template file as a bundled asset; relative path from this
         // module to wherever `mails/` lives in the source tree.  When
@@ -164,7 +174,7 @@ export const sendTemplateEmail = async (to, subject, templateName, templateData 
                 const value = key.split('.').reduce((o, k) => (o ? o[k] : ''), templateData);
                 return value == null ? '' : String(value);
             });
-            return sendEmail({
+            return (0, exports.sendEmail)({
                 to,
                 subject,
                 html,
@@ -179,3 +189,4 @@ export const sendTemplateEmail = async (to, subject, templateName, templateData 
         throw new Error(`Failed to send template email: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
 };
+exports.sendTemplateEmail = sendTemplateEmail;

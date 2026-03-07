@@ -1,3 +1,5 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 const emojiManagement = {
     data: {
         name: 'emoji-management',
@@ -190,4 +192,4 @@ const emojiManagement = {
         return { type: 4, data: { content: 'Invalid subcommand.' } };
     }
 };
-export default emojiManagement;
+exports.default = emojiManagement;

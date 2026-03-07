@@ -1,17 +1,55 @@
-import { DatabaseUtils } from './utils/databaseUtils';
+"use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const databaseUtils_1 = require("./utils/databaseUtils");
 // polyfills need to be registered before any modules that may use XMLHttpRequest
 // (kuromoji's browser loader relies on it when running inside the worker bundle).
-import './utils/polyfills';
-import { verifyKey } from 'discord-interactions';
-import { Hono } from 'hono';
+require("./utils/polyfills");
+const discord_interactions_1 = require("discord-interactions");
+const hono_1 = require("hono");
 // commands imports
-import dictionary from './commands/dictionnary';
-import emojiManagement from './commands/emojiManagment';
-import hello from './commands/hello';
-import listServerEmojis from './commands/listServerEmojis';
-import pronounce from './commands/pronounce';
-import sendVerificationCode, { seededCode } from './commands/sendVerificationCode';
-const app = new Hono();
+const dictionnary_1 = __importDefault(require("./commands/dictionnary"));
+const emojiManagment_1 = __importDefault(require("./commands/emojiManagment"));
+const hello_1 = __importDefault(require("./commands/hello"));
+const listServerEmojis_1 = __importDefault(require("./commands/listServerEmojis"));
+const pronounce_1 = __importDefault(require("./commands/pronounce"));
+const sendVerificationCode_1 = __importStar(require("./commands/sendVerificationCode"));
+const app = new hono_1.Hono();
 app.post('/api/interactions', async (c) => {
     const signature = c.req.header('x-signature-ed25519');
     const timestamp = c.req.header('x-signature-timestamp');
@@ -34,7 +72,7 @@ app.post('/api/interactions', async (c) => {
         // });
         return c.text('invalid request headers', 400);
     }
-    const isValid = verifyKey(body, signature, timestamp, PUBLIC_KEY);
+    const isValid = (0, discord_interactions_1.verifyKey)(body, signature, timestamp, PUBLIC_KEY);
     if (!isValid) {
         console.warn('Invalid request signature');
         console.warn('Request body:', body);
@@ -53,17 +91,17 @@ app.post('/api/interactions', async (c) => {
                 return c.json({ type: 4, data: { content: 'Pong!' } });
             }
             case 'emoji-management':
-                return c.json(await emojiManagement.execute(interaction, c.env));
+                return c.json(await emojiManagment_1.default.execute(interaction, c.env));
             case 'list-server-emojis':
-                return c.json(await listServerEmojis.execute(interaction, c.env));
+                return c.json(await listServerEmojis_1.default.execute(interaction, c.env));
             case 'hello':
-                return c.json(await hello.execute(interaction, c.env));
+                return c.json(await hello_1.default.execute(interaction, c.env));
             case 'dictionary':
-                return c.json(await dictionary.execute(interaction, c.env));
+                return c.json(await dictionnary_1.default.execute(interaction, c.env));
             case 'pronounce':
-                return c.json(await pronounce.execute(interaction, c.env));
+                return c.json(await pronounce_1.default.execute(interaction, c.env));
             case 'send-verification-code': {
-                return c.json(await sendVerificationCode.execute(interaction, c.env));
+                return c.json(await sendVerificationCode_1.default.execute(interaction, c.env));
             }
             default:
                 console.warn('Unknown command received:', name);
@@ -79,8 +117,8 @@ app.post('/api/interactions', async (c) => {
         if (interaction.data.custom_id.startsWith('verify_code_modal:')) {
             const email = interaction.data.custom_id.split(':')[1];
             const code = interaction.data.components[0].components[0].value;
-            if (code == seededCode(email + c.env.EMAIL_HASH).toString()) {
-                const DatabaseUtilsInstance = new DatabaseUtils({
+            if (code == (0, sendVerificationCode_1.seededCode)(email + c.env.EMAIL_HASH).toString()) {
+                const DatabaseUtilsInstance = new databaseUtils_1.DatabaseUtils({
                     SUPABASE_URL: c.env.SUPABASE_URL || '',
                     SUPABASE_ANON_KEY: c.env.SUPABASE_ANON_KEY || '',
                 });
@@ -113,4 +151,4 @@ app.post('/api/interactions', async (c) => {
     }
     return c.text('ok');
 });
-export default app;
+exports.default = app;

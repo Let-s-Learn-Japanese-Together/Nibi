@@ -1,4 +1,7 @@
-export default async function fetchGoogleSheet(id) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = fetchGoogleSheet;
+async function fetchGoogleSheet(id) {
     // first, lets fetch the google sheet
     const link = `https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:csv`;
     const request = await fetch(link);

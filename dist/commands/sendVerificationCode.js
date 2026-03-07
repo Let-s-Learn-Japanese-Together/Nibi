@@ -1,6 +1,9 @@
-import { DatabaseUtils } from '../utils/databaseUtils';
-import { sendTemplateEmail } from '../utils/sendEmail';
-export function seededCode(email) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.seededCode = seededCode;
+const databaseUtils_1 = require("../utils/databaseUtils");
+const sendEmail_1 = require("../utils/sendEmail");
+function seededCode(email) {
     let hash = 0;
     for (let i = 0; i < email.length; i++) {
         hash = (hash * 31 + email.charCodeAt(i)) % 1000000;
@@ -21,7 +24,7 @@ const sendVerificationCode = {
         ]
     },
     async execute(interaction, env) {
-        const DatabaseUtilsInstance = new DatabaseUtils({
+        const DatabaseUtilsInstance = new databaseUtils_1.DatabaseUtils({
             SUPABASE_URL: env["SUPABASE_URL"],
             SUPABASE_ANON_KEY: env["SUPABASE_ANON_KEY"]
         });
@@ -35,7 +38,7 @@ const sendVerificationCode = {
             return { type: 4, data: { content: 'Please provide a valid email address.', ephemeral: true } };
         }
         const verificationCode = seededCode(email + env.EMAIL_HASH);
-        await sendTemplateEmail(email, 'Your Verification Code', 'verificationCode', {
+        await (0, sendEmail_1.sendTemplateEmail)(email, 'Your Verification Code', 'verificationCode', {
             username: interaction.member.user.global_name || interaction.member.user.username,
             verificationCode: verificationCode.toString()
         }, env).catch(error => {
@@ -68,4 +71,4 @@ const sendVerificationCode = {
         };
     }
 };
-export default sendVerificationCode;
+exports.default = sendVerificationCode;

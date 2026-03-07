@@ -1,3 +1,6 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.execute = void 0;
 const ping = {
     data: {
         name: 'ping',
@@ -9,4 +12,4 @@ const ping = {
 };
 // const data = ping.data.toJSON();
 const execute = ping.execute;
-export { execute };
+exports.execute = execute;

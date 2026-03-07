@@ -1,5 +1,8 @@
 import { config } from "../config";
 
+import dotenv from "dotenv";
+dotenv.config({path: process.cwd() + '/.env'});
+
 const BOT_TOKEN = process.env.BOT_TOKEN || config.discord.token;
 const GUILD_ID = process.env.GUILD_ID || config.discord.guildId;
 

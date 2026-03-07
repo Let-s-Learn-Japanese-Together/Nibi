@@ -1,12 +1,15 @@
-import { createClient } from '@supabase/supabase-js';
-export class DatabaseUtils {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.DatabaseUtils = void 0;
+const supabase_js_1 = require("@supabase/supabase-js");
+class DatabaseUtils {
     constructor(config) {
         console.log('Supabase config', {
             SUPABASE_URL: config.SUPABASE_URL ? '[present]' : '[missing]',
             SUPABASE_ANON_KEY: config.SUPABASE_ANON_KEY ? '[present]' : '[missing]',
         });
         if (config.SUPABASE_URL && config.SUPABASE_ANON_KEY) {
-            this.supabase = createClient(config.SUPABASE_URL, config.SUPABASE_ANON_KEY);
+            this.supabase = (0, supabase_js_1.createClient)(config.SUPABASE_URL, config.SUPABASE_ANON_KEY);
         }
     }
     async supabaseRead(key) {
@@ -66,3 +69,4 @@ export class DatabaseUtils {
         }
     }
 }
+exports.DatabaseUtils = DatabaseUtils;

@@ -1,6 +1,13 @@
-import { config } from "../config";
-const BOT_TOKEN = process.env.BOT_TOKEN || config.discord.token;
-const GUILD_ID = process.env.GUILD_ID || config.discord.guildId;
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const config_1 = require("../config");
+const dotenv_1 = __importDefault(require("dotenv"));
+dotenv_1.default.config({ path: process.cwd() + '/.env' });
+const BOT_TOKEN = process.env.BOT_TOKEN || config_1.config.discord.token;
+const GUILD_ID = process.env.GUILD_ID || config_1.config.discord.guildId;
 if (!BOT_TOKEN)
     throw new Error("BOT_TOKEN env var is required");
 if (!GUILD_ID)

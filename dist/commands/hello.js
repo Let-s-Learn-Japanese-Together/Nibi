@@ -1,3 +1,5 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 const hello = {
     data: { "options": [{ "name": "user", "description": "The user to greet", "required": false, "type": 6 }, { "type": 3, "choices": [{ "name": "Morning (Ohayo gozaimasu)", "value": "morning" }, { "name": "Afternoon (Konnichiwa)", "value": "afternoon" }, { "name": "Evening (Konbanwa)", "value": "evening" }, { "name": "First meeting (Hajimemashite)", "value": "first" }, { "name": "Casual (Genki?)", "value": "casual" }, { "name": "Random", "value": "random" }], "name": "style", "description": "Greeting style", "required": false }], "name": "hello", "description": "Greets a user in Japanese!", "type": 1 },
     async execute(interaction, env) {
@@ -59,4 +61,4 @@ const hello = {
         return { type: 4, data: { content: `Hello, ${targetUser}!` } };
     },
 };
-export default hello;
+exports.default = hello;

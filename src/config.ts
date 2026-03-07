@@ -5,9 +5,9 @@ dotenv.config();
 
 export const config = {
   discord: {
-    token: process.env.DISCORD_TOKEN as string,
-    clientId: process.env.DISCORD_CLIENT_ID as string,
-    guildId: process.env.DISCORD_GUILD_ID as string,
+    token: process.env.BOT_TOKEN as string,
+    clientId: process.env.APP_ID as string,
+    guildId: process.env.GUILD_ID as string || '1427259865121820716',
   },
   email: {
     host: process.env.EMAIL_HOST || 'ssl0.ovh.net',
@@ -23,11 +23,11 @@ export const config = {
 
 // Validate required environment variables
 if (!config.discord.token) {
-  throw new Error('DISCORD_TOKEN is required');
+  throw new Error('BOT_TOKEN is required');
 }
 
 if (!config.discord.clientId) {
-  throw new Error('DISCORD_CLIENT_ID is required');
+  throw new Error('APP_ID is required');
 }
 
 if (!config.email.user) {
