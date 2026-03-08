@@ -37,7 +37,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const databaseUtils_1 = require("./utils/databaseUtils");
-const config_1 = require("./config"); // needed for discord token/guild/role ids
 // polyfills need to be registered before any modules that may use XMLHttpRequest
 // (kuromoji's browser loader relies on it when running inside the worker bundle).
 require("./utils/polyfills");
@@ -145,9 +144,9 @@ app.post("/api/interactions", async (c) => {
                 await DatabaseUtilsInstance.writeJson("users", users);
                 // add verified role to the member immediately
                 try {
-                    const BOT_TOKEN = c.env.BOT_TOKEN || config_1.config.discord.token;
-                    const GUILD_ID = c.env.GUILD_ID || config_1.config.discord.guildId;
-                    const VERIFIED_ROLE_ID = c.env.VERIFIED_ROLE_ID || "1427262130154901614";
+                    const BOT_TOKEN = c.env.BOT_TOKEN || c.env.BOT_TOKEN || "";
+                    const GUILD_ID = c.env.GUILD_ID || c.env.GUILD_ID || "";
+                    const VERIFIED_ROLE_ID = c.env.VERIFIED_ROLE_ID || c.env.VERIFIED_ROLE_ID || "1427262130154901614";
                     await modifyGuildMemberRole(interaction.member.user.id, VERIFIED_ROLE_ID, BOT_TOKEN, GUILD_ID, true);
                 }
                 catch (err) {

@@ -1,4 +1,3 @@
-import { config } from "./config"; // needed for discord token/guild/role ids
 import { DatabaseUtils } from "./utils/databaseUtils";
 // polyfills need to be registered before any modules that may use XMLHttpRequest
 // (kuromoji's browser loader relies on it when running inside the worker bundle).
@@ -14,7 +13,7 @@ import hello from "./commands/hello";
 import listServerEmojis from "./commands/listServerEmojis";
 import pronounce from "./commands/pronounce";
 import sendVerificationCode, {
-    seededCode,
+  seededCode,
 } from "./commands/sendVerificationCode";
 
 const app = new Hono();
@@ -130,10 +129,10 @@ app.post("/api/interactions", async (c) => {
 
         // add verified role to the member immediately
         try {
-          const BOT_TOKEN = (c.env.BOT_TOKEN as string) || config.discord.token;
-          const GUILD_ID = (c.env.GUILD_ID as string) || config.discord.guildId;
+          const BOT_TOKEN = (c.env.BOT_TOKEN as string) || c.env.BOT_TOKEN as string || "";
+          const GUILD_ID = (c.env.GUILD_ID as string) || c.env.GUILD_ID as string || "";
           const VERIFIED_ROLE_ID =
-            (c.env.VERIFIED_ROLE_ID as string) || "1427262130154901614";
+            (c.env.VERIFIED_ROLE_ID as string) || c.env.VERIFIED_ROLE_ID as string || "1427262130154901614";
           await modifyGuildMemberRole(
             interaction.member.user.id,
             VERIFIED_ROLE_ID,
