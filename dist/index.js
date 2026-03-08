@@ -37,6 +37,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const databaseUtils_1 = require("./utils/databaseUtils");
+const config_1 = require("./config"); // needed for discord token/guild/role ids
 // polyfills need to be registered before any modules that may use XMLHttpRequest
 // (kuromoji's browser loader relies on it when running inside the worker bundle).
 require("./utils/polyfills");
@@ -50,6 +51,19 @@ const listServerEmojis_1 = __importDefault(require("./commands/listServerEmojis"
 const pronounce_1 = __importDefault(require("./commands/pronounce"));
 const sendVerificationCode_1 = __importStar(require("./commands/sendVerificationCode"));
 const app = new hono_1.Hono();
+// utility for adding/removing Discord roles from within interaction handlers
+async function modifyGuildMemberRole(memberId, roleId, token, guildId, add = true) {
+    const method = add ? "PUT" : "DELETE";
+    const url = `https://discord.com/api/v10/guilds/${guildId}/members/${memberId}/roles/${roleId}`;
+    const res = await fetch(url, {
+        method,
+        headers: { Authorization: `Bot ${token}` },
+    });
+    if (!res.ok) {
+        const text = await res.text();
+        console.warn(`Failed to ${add ? "add" : "remove"} role:`, res.status, text);
+    }
+}
 app.post("/api/interactions", async (c) => {
     const signature = c.req.header("x-signature-ed25519");
     const timestamp = c.req.header("x-signature-timestamp");
@@ -129,6 +143,16 @@ app.post("/api/interactions", async (c) => {
                     users[userIndex].email = email; // Mark user as verified by setting their email
                 }
                 await DatabaseUtilsInstance.writeJson("users", users);
+                // add verified role to the member immediately
+                try {
+                    const BOT_TOKEN = c.env.BOT_TOKEN || config_1.config.discord.token;
+                    const GUILD_ID = c.env.GUILD_ID || config_1.config.discord.guildId;
+                    const VERIFIED_ROLE_ID = c.env.VERIFIED_ROLE_ID || "1427262130154901614";
+                    await modifyGuildMemberRole(interaction.member.user.id, VERIFIED_ROLE_ID, BOT_TOKEN, GUILD_ID, true);
+                }
+                catch (err) {
+                    console.error("Error assigning verified role:", err);
+                }
                 return c.json({
                     type: 4,
                     data: {

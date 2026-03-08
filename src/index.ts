@@ -1,3 +1,4 @@
+import { config } from "./config"; // needed for discord token/guild/role ids
 import { DatabaseUtils } from "./utils/databaseUtils";
 // polyfills need to be registered before any modules that may use XMLHttpRequest
 // (kuromoji's browser loader relies on it when running inside the worker bundle).
@@ -13,10 +14,30 @@ import hello from "./commands/hello";
 import listServerEmojis from "./commands/listServerEmojis";
 import pronounce from "./commands/pronounce";
 import sendVerificationCode, {
-  seededCode,
+    seededCode,
 } from "./commands/sendVerificationCode";
 
 const app = new Hono();
+
+// utility for adding/removing Discord roles from within interaction handlers
+async function modifyGuildMemberRole(
+  memberId: string,
+  roleId: string,
+  token: string,
+  guildId: string,
+  add: boolean = true,
+) {
+  const method = add ? "PUT" : "DELETE";
+  const url = `https://discord.com/api/v10/guilds/${guildId}/members/${memberId}/roles/${roleId}`;
+  const res = await fetch(url, {
+    method,
+    headers: { Authorization: `Bot ${token}` },
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    console.warn(`Failed to ${add ? "add" : "remove"} role:`, res.status, text);
+  }
+}
 
 app.post("/api/interactions", async (c) => {
   const signature = c.req.header("x-signature-ed25519");
@@ -106,6 +127,24 @@ app.post("/api/interactions", async (c) => {
           users[userIndex].email = email; // Mark user as verified by setting their email
         }
         await DatabaseUtilsInstance.writeJson("users", users);
+
+        // add verified role to the member immediately
+        try {
+          const BOT_TOKEN = (c.env.BOT_TOKEN as string) || config.discord.token;
+          const GUILD_ID = (c.env.GUILD_ID as string) || config.discord.guildId;
+          const VERIFIED_ROLE_ID =
+            (c.env.VERIFIED_ROLE_ID as string) || "1427262130154901614";
+          await modifyGuildMemberRole(
+            interaction.member.user.id,
+            VERIFIED_ROLE_ID,
+            BOT_TOKEN,
+            GUILD_ID,
+            true,
+          );
+        } catch (err) {
+          console.error("Error assigning verified role:", err);
+        }
+
         return c.json({
           type: 4,
           data: {
