@@ -1,4 +1,4 @@
-import { Bindings } from "hono/types";
+import { AppBindings } from "../types/bindings";
 import { Command } from "../types/command";
 import { Interaction } from "./../types/Interaction";
 import { InteractionResponse } from "./../types/InteractionResponse";
@@ -12,7 +12,7 @@ const listServerEmojis: Command = {
 
   async execute(
     interaction: Interaction,
-    env: Bindings,
+    env: AppBindings,
   ): Promise<InteractionResponse> {
     const guild = interaction.guild_id;
     const rawRequest = {

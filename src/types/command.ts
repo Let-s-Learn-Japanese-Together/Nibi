@@ -1,11 +1,11 @@
-import { Bindings } from "hono/types";
+import { AppBindings } from "./bindings";
 import { Interaction } from "./Interaction";
 import { InteractionResponse } from "./InteractionResponse";
 
 export interface CommandExecute {
   execute: (
     interaction: Interaction,
-    env: Bindings,
+    env: AppBindings,
   ) => Promise<InteractionResponse>;
 }
 

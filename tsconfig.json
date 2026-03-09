@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "target": "ES2020",
-    "module": "commonjs",
+    "module": "ES2020",
     "strict": true,
     "esModuleInterop": true,
     "moduleResolution": "node",
@@ -9,5 +9,5 @@
     "lib": ["dom", "esnext"],
     "skipLibCheck": true
   },
-  "include": ["src/**/*", "sandbox.js"]
+  "include": ["src/**/*", "api/**/*", "sandbox.js"]
 }
