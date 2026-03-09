@@ -1,7 +1,7 @@
 import googleTTS from "google-tts-api";
-import { Bindings } from "hono/types";
 import Kuroshiro from "kuroshiro";
 import KuromojiAnalyzer from "kuroshiro-analyzer-kuromoji";
+import { AppBindings } from "../types/bindings";
 import { Command } from "../types/command";
 import { InteractionResponse } from "../types/InteractionResponse";
 import { Interaction } from "./../types/Interaction";
@@ -218,7 +218,7 @@ async function uploadToDiscord(
   audioBuffer: Buffer,
   channelId: string,
   isMP3: boolean = true,
-  env: Bindings,
+  env: AppBindings,
 ): Promise<string> {
   const filename = isMP3 ? "voice-message.mp3" : "voice-message.ogg";
   const contentType = isMP3 ? "audio/mpeg" : "audio/ogg";
@@ -290,7 +290,7 @@ async function sendVoiceMessage(
   durationSecs: number,
   waveformB64: string,
   isMP3: boolean = true,
-  env: Bindings,
+  env: AppBindings,
 ) {
   const filename = isMP3 ? "voice-message.mp3" : "voice-message.ogg";
 
@@ -341,7 +341,7 @@ const pronounce: Command = {
 
   async execute(
     interaction: Interaction,
-    env: Bindings,
+    env: AppBindings,
   ): Promise<InteractionResponse> {
     const textOption = interaction.data?.options?.find(
       (opt: Record<string, unknown>) => opt.name === "text",

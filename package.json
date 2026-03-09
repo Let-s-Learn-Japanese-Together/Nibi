@@ -1,14 +1,16 @@
 {
   "name": "discord-interaction-bot",
   "version": "0.1.0",
-  "description": "Discord bot leveraging interaction endpoints with Hono and Cloudflare Workers",
+  "description": "Discord bot leveraging interaction endpoints with Hono",
   "main": "dist/index.js",
   "scripts": {
-    "build": "tsc",
-    "dev": "wrangler dev --local",
-    "deploy": "wrangler deploy",
-    "register-commands": "ts-node src/register-commands.ts",
-    "format": "prettier --write .",
+    "build": "npx tsc",
+    "dev:vercel": "npx vercel dev",
+    "dev:wrangler": "npx wrangler dev --local",
+    "deploy": "npx vercel --prod",
+    "deploy:wrangler": "npx wrangler deploy",
+    "register-commands": "npx ts-node src/register-commands.ts",
+    "format": "npx prettier --write .",
     "lint": "npx eslint src --ext .ts"
   },
   "dependencies": {
@@ -18,10 +20,11 @@
     "ejs": "^5.0.1",
     "google-translate-api-x": "^10.7.2",
     "google-tts-api": "^2.0.2",
-    "hono": "^3.1.0",
+    "hono": "^4.12.5",
     "kuroshiro": "^1.2.0",
     "kuroshiro-analyzer-kuromoji": "^1.1.0",
-    "nodemailer": "^8.0.1"
+    "nodemailer": "^8.0.1",
+    "vercel": "^50.28.0"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
