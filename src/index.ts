@@ -13,10 +13,20 @@ import hello from "./commands/hello";
 import listServerEmojis from "./commands/listServerEmojis";
 import pronounce from "./commands/pronounce";
 import sendVerificationCode, {
-  seededCode,
+    seededCode,
 } from "./commands/sendVerificationCode";
 
 const app = new Hono();
+
+// Middleware: inject process.env into Hono's c.env for Vercel/Node.js runtimes
+// (on Cloudflare Workers, c.env is populated automatically by the runtime)
+app.use("*", async (c, next) => {
+  if (!c.env || Object.keys(c.env).length === 0) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (c as any).env = process.env;
+  }
+  await next();
+});
 
 // utility for adding/removing Discord roles from within interaction handlers
 async function modifyGuildMemberRole(

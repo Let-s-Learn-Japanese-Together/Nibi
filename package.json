@@ -1,12 +1,14 @@
 {
   "name": "discord-interaction-bot",
   "version": "0.1.0",
-  "description": "Discord bot leveraging interaction endpoints with Hono and Cloudflare Workers",
+  "description": "Discord bot leveraging interaction endpoints with Hono",
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
-    "dev": "wrangler dev --local",
-    "deploy": "wrangler deploy",
+    "dev": "vercel dev",
+    "dev:wrangler": "wrangler dev --local",
+    "deploy": "vercel --prod",
+    "deploy:wrangler": "wrangler deploy",
     "register-commands": "ts-node src/register-commands.ts",
     "format": "prettier --write .",
     "lint": "npx eslint src --ext .ts"
