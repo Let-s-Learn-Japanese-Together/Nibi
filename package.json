@@ -20,7 +20,7 @@
     "ejs": "^5.0.1",
     "google-translate-api-x": "^10.7.2",
     "google-tts-api": "^2.0.2",
-    "hono": "^3.1.0",
+    "hono": "^4.12.5",
     "kuroshiro": "^1.2.0",
     "kuroshiro-analyzer-kuromoji": "^1.1.0",
     "nodemailer": "^8.0.1",
