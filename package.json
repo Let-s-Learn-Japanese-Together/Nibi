@@ -4,13 +4,13 @@
   "description": "Discord bot leveraging interaction endpoints with Hono",
   "main": "dist/index.js",
   "scripts": {
-    "build": "tsc",
-    "dev": "vercel dev",
-    "dev:wrangler": "wrangler dev --local",
-    "deploy": "vercel --prod",
-    "deploy:wrangler": "wrangler deploy",
-    "register-commands": "ts-node src/register-commands.ts",
-    "format": "prettier --write .",
+    "build": "npx tsc",
+    "dev:vercel": "npx vercel dev",
+    "dev:wrangler": "npx wrangler dev --local",
+    "deploy": "npx vercel --prod",
+    "deploy:wrangler": "npx wrangler deploy",
+    "register-commands": "npx ts-node src/register-commands.ts",
+    "format": "npx prettier --write .",
     "lint": "npx eslint src --ext .ts"
   },
   "dependencies": {
@@ -23,7 +23,8 @@
     "hono": "^3.1.0",
     "kuroshiro": "^1.2.0",
     "kuroshiro-analyzer-kuromoji": "^1.1.0",
-    "nodemailer": "^8.0.1"
+    "nodemailer": "^8.0.1",
+    "vercel": "^50.28.0"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

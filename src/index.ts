@@ -19,15 +19,20 @@ import sendVerificationCode, {
 
 const app = new Hono<{ Bindings: AppBindings }>();
 
-// Middleware: inject process.env into Hono's c.env for Vercel/Node.js runtimes
-// (on Cloudflare Workers, c.env is populated automatically by the runtime)
+// Middleware: inject process.env into Hono's env for Vercel/Node.js runtimes
+// (on Cloudflare Workers, env is populated automatically by the runtime)
 app.use("*", async (c, next) => {
-  if (!c.env || Object.keys(c.env).length === 0) {
+  const env = getEnv(c.env);
+  if (!env || Object.keys(env).length === 0) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (c as any).env = process.env;
   }
   await next();
 });
+
+function getEnv(env: AppBindings): AppBindings {
+  return { ...process.env, ...env }
+}
 
 // utility for adding/removing Discord roles from within interaction handlers
 async function modifyGuildMemberRole(
@@ -49,13 +54,18 @@ async function modifyGuildMemberRole(
   }
 }
 
+app.get('/', async (c) => {
+  return c?.json({ status: "ok" });
+})
+
 app.post("/api/interactions", async (c) => {
   const signature = c.req.header("x-signature-ed25519");
   const timestamp = c.req.header("x-signature-timestamp");
   const body = await c.req.text();
 
-  if (!c.env) return c.text("Environment variables not found", 500);
-  const PUBLIC_KEY = c.env.PUBLIC_KEY as string;
+  const env = getEnv(c.env);
+  if (!env) return c.text("Environment variables not found", 500);
+  const PUBLIC_KEY = env.PUBLIC_KEY as string;
 
   if (!signature || !timestamp || !PUBLIC_KEY) {
     console.warn("Missing signature, timestamp, or public key");
@@ -88,17 +98,17 @@ app.post("/api/interactions", async (c) => {
         return c.json({ type: 4, data: { content: "Pong!" } });
       }
       case "emoji-management":
-        return c.json(await emojiManagement.execute(interaction, c.env));
+        return c.json(await emojiManagement.execute(interaction, env));
       case "list-server-emojis":
-        return c.json(await listServerEmojis.execute(interaction, c.env));
+        return c.json(await listServerEmojis.execute(interaction, env));
       case "hello":
-        return c.json(await hello.execute(interaction, c.env));
+        return c.json(await hello.execute(interaction, env));
       case "dictionary":
-        return c.json(await dictionary.execute(interaction, c.env));
+        return c.json(await dictionary.execute(interaction, env));
       case "pronounce":
-        return c.json(await pronounce.execute(interaction, c.env));
+        return c.json(await pronounce.execute(interaction, env));
       case "send-verification-code": {
-        return c.json(await sendVerificationCode.execute(interaction, c.env));
+        return c.json(await sendVerificationCode.execute(interaction, env));
       }
       default:
         console.warn("Unknown command received:", name);
@@ -114,10 +124,10 @@ app.post("/api/interactions", async (c) => {
     if (interaction.data.custom_id.startsWith("verify_code_modal:")) {
       const email = interaction.data.custom_id.split(":")[1];
       const code = interaction.data.components[0].components[0].value;
-      if (code == seededCode(email + c.env.EMAIL_HASH).toString()) {
+      if (code == seededCode(email + env.EMAIL_HASH).toString()) {
         const DatabaseUtilsInstance = new DatabaseUtils({
-          SUPABASE_URL: (c.env.SUPABASE_URL as string) || "",
-          SUPABASE_ANON_KEY: (c.env.SUPABASE_ANON_KEY as string) || "",
+          SUPABASE_URL: (env.SUPABASE_URL as string) || "",
+          SUPABASE_ANON_KEY: (env.SUPABASE_ANON_KEY as string) || "",
         });
         let users = (await DatabaseUtilsInstance.readJson("users")) as Array<{
           id: string;
@@ -140,10 +150,10 @@ app.post("/api/interactions", async (c) => {
 
         // add verified role to the member immediately
         try {
-          const BOT_TOKEN = (c.env.BOT_TOKEN as string) || c.env.BOT_TOKEN as string || "";
-          const GUILD_ID = (c.env.GUILD_ID as string) || c.env.GUILD_ID as string || "";
+          const BOT_TOKEN = (env.BOT_TOKEN as string) || env.BOT_TOKEN as string || "";
+          const GUILD_ID = (env.GUILD_ID as string) || env.GUILD_ID as string || "";
           const VERIFIED_ROLE_ID =
-            (c.env.VERIFIED_ROLE_ID as string) || c.env.VERIFIED_ROLE_ID as string || "1427262130154901614";
+            (env.VERIFIED_ROLE_ID as string) || env.VERIFIED_ROLE_ID as string || "1427262130154901614";
           await modifyGuildMemberRole(
             interaction.member.user.id,
             VERIFIED_ROLE_ID,
