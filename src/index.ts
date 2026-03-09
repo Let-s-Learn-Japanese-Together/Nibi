@@ -5,6 +5,7 @@ import "./utils/polyfills";
 
 import { verifyKey } from "discord-interactions";
 import { Hono } from "hono";
+import { AppBindings } from "./types/bindings";
 
 // commands imports
 import dictionary from "./commands/dictionnary";
@@ -13,10 +14,10 @@ import hello from "./commands/hello";
 import listServerEmojis from "./commands/listServerEmojis";
 import pronounce from "./commands/pronounce";
 import sendVerificationCode, {
-    seededCode,
+  seededCode,
 } from "./commands/sendVerificationCode";
 
-const app = new Hono();
+const app = new Hono<{ Bindings: AppBindings }>();
 
 // Middleware: inject process.env into Hono's c.env for Vercel/Node.js runtimes
 // (on Cloudflare Workers, c.env is populated automatically by the runtime)
