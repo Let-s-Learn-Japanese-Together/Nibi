@@ -1,8 +1,8 @@
 name: Default Role Giver
 
 on:
-  schedule:
-    - cron: "0 * * * *" # hourly
+ # schedule:
+    # - cron: "0 * * * *" # hourly
   workflow_dispatch:
 
 jobs:
