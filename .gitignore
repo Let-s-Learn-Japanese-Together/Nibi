@@ -3,3 +3,5 @@ dist/
 .env
 wrangler.toml
 .wrangler
+.vercel
+.env*.local
