@@ -1,5 +1,5 @@
-import { Bindings } from "hono/types";
 import nodemailer from "nodemailer";
+import { AppBindings } from "../types/bindings";
 import { NodeMailerConfig } from "../types/NodeMailerConfig";
 
 export interface EmailOptions {
@@ -85,7 +85,7 @@ const verificationEmail = `
  */
 
 // Create transporter with OVH SSL configuration
-const createTransporter = (env: Bindings) => {
+const createTransporter = (env: AppBindings) => {
   // Build the transport configuration dynamically.  On some runtimes
   // (notably Cloudflare Workers) the underlying SMTP transport does not
   // implement the `tls.rejectUnauthorized` option; passing it leads to the
@@ -123,7 +123,7 @@ const createTransporter = (env: Bindings) => {
 
 export const sendEmail = async (
   options: EmailOptions,
-  env: Bindings,
+  env: AppBindings,
 ): Promise<void> => {
   try {
     const transporter = createTransporter(env);
@@ -157,7 +157,7 @@ export const sendSimpleEmail = async (
   to: string | string[],
   subject: string,
   message: string,
-  env: Bindings,
+  env: AppBindings,
 ): Promise<void> => {
   return sendEmail(
     {
@@ -174,7 +174,7 @@ export const sendHtmlEmail = async (
   to: string | string[],
   subject: string,
   html: string,
-  env: Bindings,
+  env: AppBindings,
   text?: string,
 ): Promise<void> => {
   return sendEmail(
@@ -199,7 +199,7 @@ export const sendEmailWithAttachments = async (
     content?: string | Buffer;
     contentType?: string;
   }>,
-  env: Bindings,
+  env: AppBindings,
 ): Promise<void> => {
   return sendEmail(
     {
@@ -222,7 +222,7 @@ export const sendTemplateEmail = async (
   subject: string,
   templateName: string,
   templateData: Record<string, unknown> = {},
-  env: Bindings,
+  env: AppBindings,
 ): Promise<void> => {
   try {
     // fetch the template file as a bundled asset; relative path from this
